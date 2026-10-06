@@ -1,0 +1,188 @@
+{
+  "template": false,
+  "instructions": "Exercise record for Provectus Alternative D. The originals remain at manifest.template.json and README.template.md. No credentials. Pending means not chosen yet. not-exportable means a detail was unavailable and was not replaced with a guess.",
+  "categories": {
+    "development_tools_and_models": {
+      "status": "used",
+      "files": [
+        "ai-workflow/README.md",
+        "docs/work-log.md"
+      ],
+      "notes": "Cursor 3.23.23, user-reported and not rechecked in this session. Coding-model display name, user-reported and not independently confirmed: Grok 4.7 High. This is not a verified API model ID. Reasoning: High, selected by the user. Python 3.12.14 with an existing .venv, user-reported and not rechecked in this session. Planning-model display name, user-reported and not independently confirmed: ChatGPT-6.1 Sol High. This is not a verified API model ID. A direct read of docs/work-log.md from disk during this review returned 0 bytes, so the setup and seed-verification entries are not in the saved file. Provider API model IDs, temperature, and output limits were not exported. No defaults for those parameters are known, so none are recorded. The user may switch the coding model later for cost; that change has not happened."
+    },
+    "plugins_and_extensions": {
+      "status": "used",
+      "files": [],
+      "notes": "ChatGPT's GitHub connector was attempted during planning. It returned Not Found and made no repository changes. Version and permissions were not provided. The same attempt is recorded as the ChatGPT GitHub connector under tool_and_mcp_settings. That connector is not a Cursor extension. The Cursor extension inventory was not exported and is unavailable; this does not claim that Cursor has zero extensions."
+    },
+    "application_models_and_parameters": {
+      "status": "pending",
+      "files": [],
+      "notes": "No application model has been selected. No application model call has been made. Provider, model ID, and parameters are pending."
+    },
+    "skills": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No project skills were created or used."
+    },
+    "agent_instructions_and_subagents": {
+      "status": "used",
+      "files": [
+        "AGENTS.md"
+      ],
+      "notes": "Repository-root AGENTS.md holds the project instructions. No subagents were defined."
+    },
+    "hooks_and_scripts": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No hooks or scripts were added. Nothing runs automatically for this exercise."
+    },
+    "prompts_and_rules": {
+      "status": "used",
+      "files": [
+        "AGENTS.md",
+        "ai-workflow/prompts/001-bootstrap.md"
+      ],
+      "notes": "001-bootstrap.md is the saved bootstrap instruction. AGENTS.md is the project instruction file derived from it. data/domain.md remains the domain source of truth and is not copied here."
+    },
+    "tool_and_mcp_settings": {
+      "status": "used",
+      "files": [],
+      "notes": "ChatGPT's GitHub connector was asked to read this repository, returned Not Found, and made no repository changes. Its version and permissions were not provided. The same attempt is acknowledged under plugins_and_extensions. It is not a Cursor extension, and no Cursor MCP configuration was exported or added. The Cursor extension inventory remains unavailable."
+    },
+    "permissions_and_environment_names": {
+      "status": "pending",
+      "files": [
+        "ai-workflow/.env.example",
+        ".gitignore"
+      ],
+      "notes": "Application environment names and permission settings are pending. No permission settings were exported. .env.example is the supplied placeholder naming MODEL_API_KEY with a blank value; that name is not a confirmed application setting. No credentials are stored. .gitignore already excludes .env and .venv."
+    }
+  },
+  "configuration_records": [
+    {
+      "name": "Cursor",
+      "category": "development_tools_and_models",
+      "purpose": "Editor and coding agent for the exercise.",
+      "original_path_or_scope": "Local Cursor installation. User-level settings were not copied.",
+      "saved_path": "ai-workflow/README.md",
+      "version_or_commit": "3.23.23",
+      "used_during": "2026-10-06 bootstrap, and ongoing development",
+      "status": "used",
+      "redactions": [
+        "User-level Cursor settings were not copied because they were not exported."
+      ]
+    },
+    {
+      "name": "Grok 4.7 High",
+      "category": "development_tools_and_models",
+      "purpose": "User-reported coding-model display name. Not independently confirmed and not a verified API model ID. Reasoning set to High by the user. This is not the in-application model.",
+      "original_path_or_scope": "Cursor coding-model selection for this session.",
+      "saved_path": "ai-workflow/README.md",
+      "version_or_commit": "not-exportable",
+      "used_during": "2026-10-06 bootstrap",
+      "status": "used",
+      "redactions": [
+        "Display name is user-reported and is not a verified API model ID.",
+        "Provider API model ID was not exported.",
+        "Temperature and output limits were not exported. Defaults are unknown and were not recorded."
+      ]
+    },
+    {
+      "name": "ChatGPT-6.1 Sol High",
+      "category": "development_tools_and_models",
+      "purpose": "User-reported display name for planning assistance. Not independently confirmed and not a verified API model ID. Interpreted the assignment, planned the work, gave terminal setup instructions, and inspected the seed records. Development-time only.",
+      "original_path_or_scope": "User-reported during bootstrap. A direct read of docs/work-log.md from disk during this review returned 0 bytes, so the setup and seed-verification entries are not in the saved file.",
+      "saved_path": "ai-workflow/README.md",
+      "version_or_commit": "not-exportable",
+      "used_during": "Project setup and starter-data inspection before bootstrap",
+      "status": "used",
+      "redactions": [
+        "Display name is user-reported and is not a verified API model ID.",
+        "Provider API model ID was not exported.",
+        "Chat transcript was not copied."
+      ]
+    },
+    {
+      "name": "Python",
+      "category": "development_tools_and_models",
+      "purpose": "Local runtime. Existing virtual environment at .venv. Interpreter path was not recorded in this session.",
+      "original_path_or_scope": ".venv",
+      "saved_path": "",
+      "version_or_commit": "3.12.14",
+      "used_during": "Project setup before bootstrap",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "AGENTS.md",
+      "category": "agent_instructions_and_subagents",
+      "purpose": "Project instructions for the coding agent. Also listed under prompts_and_rules.",
+      "original_path_or_scope": "Repository root",
+      "saved_path": "AGENTS.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 bootstrap onward",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Bootstrap instruction",
+      "category": "prompts_and_rules",
+      "purpose": "Saved copy of the instruction that started Alternative D documentation.",
+      "original_path_or_scope": "Cursor chat on 2026-10-06",
+      "saved_path": "ai-workflow/prompts/001-bootstrap.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 bootstrap",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "AI workflow templates",
+      "category": "prompts_and_rules",
+      "purpose": "Original templates, preserved unchanged. Filled copies are manifest.json and README.md.",
+      "original_path_or_scope": "ai-workflow/manifest.template.json and ai-workflow/README.template.md",
+      "saved_path": "ai-workflow/manifest.template.json",
+      "version_or_commit": "28ff74bbff53dc4d463a0434c40a78d9d0691d27",
+      "used_during": "2026-10-06 bootstrap",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "ChatGPT GitHub connector",
+      "category": "tool_and_mcp_settings",
+      "purpose": "ChatGPT connector attempted to read this repository during planning. Result: Not Found. No repository changes. This is not a Cursor extension.",
+      "original_path_or_scope": "ChatGPT GitHub connector, outside Cursor's extension inventory",
+      "saved_path": "",
+      "version_or_commit": "not-exportable",
+      "used_during": "Planning before bootstrap",
+      "status": "used",
+      "redactions": [
+        "Connector version and permissions were not provided."
+      ]
+    },
+    {
+      "name": "Application model",
+      "category": "application_models_and_parameters",
+      "purpose": "Model integration inside the application. Not selected.",
+      "original_path_or_scope": "",
+      "saved_path": "",
+      "version_or_commit": "",
+      "used_during": "",
+      "status": "pending",
+      "redactions": []
+    },
+    {
+      "name": "Application environment",
+      "category": "permissions_and_environment_names",
+      "purpose": "Environment variable names for the application. Not selected. .env.example is only the supplied blank placeholder.",
+      "original_path_or_scope": "ai-workflow/.env.example",
+      "saved_path": "ai-workflow/.env.example",
+      "version_or_commit": "28ff74bbff53dc4d463a0434c40a78d9d0691d27",
+      "used_during": "",
+      "status": "pending",
+      "redactions": []
+    }
+  ],
+  "replay_command": "pending",
+  "workflow_example_path": "pending"
+}
