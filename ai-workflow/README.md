@@ -2,7 +2,7 @@
 
 Filled copy of `README.template.md`. The template is unchanged. Configuration records are in `manifest.json`.
 
-This file covers development-time tools only. The model inside the application is separate and is pending: no application model has been selected, and no application model call has been made.
+This file covers development-time tools only. The application model is separate: `gpt-4.1-mini-2025-04-14` through the OpenAI Responses API, temperature 0, max_output_tokens 1500, store false, parallel_tool_calls false, client timeout 20 seconds, retries 0. No live application model call has been made. Tests use mocks.
 
 ## Tools and models
 
@@ -13,6 +13,7 @@ Confirmed for this bootstrap:
 - Python 3.12.14, using the existing `.venv`. User-reported. The interpreter path was not recorded in this session.
 - Planning-model display name, user-reported and not independently confirmed: ChatGPT-6.1 Sol High. This is not a verified API model ID. `docs/work-log.md` records the assistance as ChatGPT and does not contain an API model ID.
 - pytest 9.1.1, installed into `.venv` and pinned in `requirements-dev.txt` from `pip show`.
+- Application package `openai` 3.24.0, pinned with its installed dependencies in `requirements.txt` from `pip freeze`.
 
 Unavailable, and not recorded as defaults:
 
@@ -32,12 +33,15 @@ The user may switch the coding model later for cost. That has not happened. When
 | Bootstrap instruction | `ai-workflow/prompts/001-bootstrap.md` | used, uncommitted |
 | Query-tool instruction | `ai-workflow/prompts/002-sql-tool.md` | used, uncommitted |
 | Review-fix instruction | `ai-workflow/prompts/003-sql-review.md` | used, uncommitted |
+| Agent instruction | `ai-workflow/prompts/004-agent-loop.md` | used, uncommitted |
+| Application prompt | `investigator/prompts/investigation.md` | used, uncommitted |
 | Workflow example | `ai-workflow/workflow-example.md` | used, uncommitted |
 | Pre-review query tool | `ai-workflow/snapshots/query-tool-before-review.py.txt` | preserved before the fix |
-| pytest pin | `requirements-dev.txt` | pytest 9.1.1 |
+| Runtime pins | `requirements.txt` | openai 3.24.0 and installed dependencies |
+| Development pins | `requirements-dev.txt` | pytest 9.1.1 and installed dependencies |
 | This record | `ai-workflow/manifest.json`, `ai-workflow/README.md` | used, uncommitted |
 | Original templates | `ai-workflow/manifest.template.json`, `ai-workflow/README.template.md` | preserved, commit `28ff74bbff53dc4d463a0434c40a78d9d0691d27` |
-| Environment name placeholder | `ai-workflow/.env.example` | supplied placeholder only; application names pending |
+| Environment name placeholder | `.env.example` and `ai-workflow/.env.example` | `OPENAI_API_KEY` name only; value not stored |
 | Domain rules | `data/domain.md` | source of truth; not an AI prompt |
 
 No project skills, subagents, hooks, or hook scripts exist. No Cursor MCP configuration was added. User-level Cursor settings were not copied.
@@ -52,14 +56,18 @@ Restore by keeping `AGENTS.md` at the repository root and the files in `ai-workf
 
 ## Reproduce or replay
 
-Replay is pending. There is no application and no saved model response to replay. `replay_command` in `manifest.json` is `pending`. No hook needs to be enabled.
+Replay a saved investigation without a key or network:
 
-Known tools when implementation starts: Cursor 3.23.23, the coding model recorded above, and Python 3.12.14 in `.venv`. Application-model replay, once responses exist, must use saved real responses and saved configuration, with credentials left out.
+```text
+python -m investigator.cli replay INVESTIGATION_ID
+```
+
+That command prints the saved response and does not call the model. No hook needs to be enabled. Mocked tests label saved responses `response_source: mock`. The first live investigation, `inv_030848b96125484bac45bb814b259f84`, is preserved locally. Its second request failed because the SDK dump sent `async_` instead of the API alias `async`. Serialization now uses `to_dict(mode="json")`, which keeps API aliases and omits unset fields.
 
 ## Decisions and limitations
 
 The user-reported coding-model display name is Grok 4.7 High, with reasoning set to High. ChatGPT, under the user-reported display name ChatGPT-6.1 Sol High, was used only before application code, for planning and seed inspection. Neither display name was independently confirmed, and neither is a verified API model ID. No skills, subagents, or hooks were added.
 
-Initial query limits are engineering settings, not supplied business rules: 2 seconds maximum execution time, 200 rows maximum, and 64 KiB maximum serialized result size. Timeouts and truncation must be reported. `AGENTS.md` requires the database connection to enforce read-only access limited to `customers`, `orders`, and `refunds`. The query tool is `investigator/query_tool.py`. Model integration, API, and UI are not implemented.
+Initial query limits are engineering settings, not supplied business rules: 2 seconds maximum execution time, 200 rows maximum, and 64 KiB maximum serialized result size. Timeouts and truncation must be reported. `AGENTS.md` requires the database connection to enforce read-only access limited to `customers`, `orders`, and `refunds`. The query tool is `investigator/query_tool.py`. The investigation agent is `investigator/agent.py`. The HTTP API and UI are not implemented.
 
-Still open: application provider, API model ID, and parameters; the five reference cases; and a replay command.
+A later review kept SQL errors, timeouts, and truncation incomplete, scoped evidence IDs to the investigation, and limited `.env` loading to live CLI commands. Replay stays offline. The first live call failed on `input[1].async_` and that report was kept. SDK responses are serialized with API field aliases, and unset optional fields are omitted. Still open: the five reference cases. Free-text explanations are not deterministically verified.

@@ -16,9 +16,13 @@
       "notes": "ChatGPT's GitHub connector was attempted during planning. It returned Not Found and made no repository changes. Version and permissions were not provided. The same attempt is recorded as the ChatGPT GitHub connector under tool_and_mcp_settings. That connector is not a Cursor extension. The Cursor extension inventory was not exported and is unavailable; this does not claim that Cursor has zero extensions."
     },
     "application_models_and_parameters": {
-      "status": "pending",
-      "files": [],
-      "notes": "No application model has been selected. No application model call has been made. Provider, model ID, and parameters are pending."
+      "status": "used",
+      "files": [
+        "investigator/agent.py",
+        "investigator/prompts/investigation.md",
+        "requirements.txt"
+      ],
+      "notes": "Application Responses API model specified for this exercise: gpt-4.1-mini-2025-04-14. temperature 0, max_output_tokens 1500, store false, parallel_tool_calls false. Client timeout 20 seconds and max_retries 0. openai 3.24.0 and its installed dependencies are pinned in requirements.txt. No live API call was made. Tests use mocks and save response_source mock. SQL errors, timeouts, and truncation stay incomplete. Evidence IDs are investigation-scoped."
     },
     "skills": {
       "status": "not-used",
@@ -44,10 +48,12 @@
         "ai-workflow/prompts/001-bootstrap.md",
         "ai-workflow/prompts/002-sql-tool.md",
         "ai-workflow/prompts/003-sql-review.md",
+        "ai-workflow/prompts/004-agent-loop.md",
+        "investigator/prompts/investigation.md",
         "ai-workflow/workflow-example.md",
         "ai-workflow/snapshots/query-tool-before-review.py.txt"
       ],
-      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. workflow-example.md records the real before-and-after correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
+      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. 004-agent-loop.md is the saved agent instruction. investigator/prompts/investigation.md is the application prompt sent to the model. workflow-example.md records the query-tool review correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
     },
     "tool_and_mcp_settings": {
       "status": "used",
@@ -55,12 +61,13 @@
       "notes": "ChatGPT's GitHub connector was asked to read this repository, returned Not Found, and made no repository changes. Its version and permissions were not provided. The same attempt is acknowledged under plugins_and_extensions. It is not a Cursor extension, and no Cursor MCP configuration was exported or added. The Cursor extension inventory remains unavailable."
     },
     "permissions_and_environment_names": {
-      "status": "pending",
+      "status": "used",
       "files": [
+        ".env.example",
         "ai-workflow/.env.example",
         ".gitignore"
       ],
-      "notes": "Application environment names and permission settings are pending. No permission settings were exported. .env.example is the supplied placeholder naming MODEL_API_KEY with a blank value; that name is not a confirmed application setting. No credentials are stored. .gitignore already excludes .env and .venv."
+      "notes": "Live investigate and follow-up commands read OPENAI_API_KEY from the environment, or from the repository-root .env when the variable is unset. An existing value is not replaced. Replay does not load .env. The key value is not stored. No permission settings were exported. .gitignore excludes .env and .venv."
     }
   },
   "configuration_records": [
@@ -220,28 +227,54 @@
       ]
     },
     {
-      "name": "Application model",
+      "name": "Application model gpt-4.1-mini-2025-04-14",
       "category": "application_models_and_parameters",
-      "purpose": "Model integration inside the application. Not selected.",
-      "original_path_or_scope": "",
-      "saved_path": "",
-      "version_or_commit": "",
-      "used_during": "",
-      "status": "pending",
+      "purpose": "Default Responses API model for the investigation agent. No live call was made.",
+      "original_path_or_scope": "OpenAI Responses API",
+      "saved_path": "investigator/agent.py",
+      "version_or_commit": "gpt-4.1-mini-2025-04-14",
+      "used_during": "2026-10-06 agent loop, mocked tests only",
+      "status": "used",
+      "redactions": [
+        "OPENAI_API_KEY value is not stored."
+      ]
+    },
+    {
+      "name": "Agent loop instruction",
+      "category": "prompts_and_rules",
+      "purpose": "Saved instruction for the investigation agent and CLI.",
+      "original_path_or_scope": "Cursor chat on 2026-10-06",
+      "saved_path": "ai-workflow/prompts/004-agent-loop.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 agent loop",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Investigation prompt",
+      "category": "prompts_and_rules",
+      "purpose": "Application prompt with business definitions and investigation procedure. The seed answer key is not included.",
+      "original_path_or_scope": "data/domain.md rules and data/schema.sql",
+      "saved_path": "investigator/prompts/investigation.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 agent loop",
+      "status": "used",
       "redactions": []
     },
     {
       "name": "Application environment",
       "category": "permissions_and_environment_names",
-      "purpose": "Environment variable names for the application. Not selected. .env.example is only the supplied blank placeholder.",
-      "original_path_or_scope": "ai-workflow/.env.example",
-      "saved_path": "ai-workflow/.env.example",
-      "version_or_commit": "28ff74bbff53dc4d463a0434c40a78d9d0691d27",
-      "used_during": "",
-      "status": "pending",
-      "redactions": []
+      "purpose": "OPENAI_API_KEY is read from the environment at runtime. Only the variable name is recorded.",
+      "original_path_or_scope": "Process environment",
+      "saved_path": ".env.example",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 agent loop",
+      "status": "used",
+      "redactions": [
+        "OPENAI_API_KEY value is not stored."
+      ]
     }
   ],
-  "replay_command": "pending",
+  "replay_command": "python -m investigator.cli replay INVESTIGATION_ID",
   "workflow_example_path": "ai-workflow/workflow-example.md"
 }

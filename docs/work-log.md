@@ -28,3 +28,40 @@
 - Checked after the fix: .venv/bin/python -m pytest — 14 passed in 2.08s.
   The locked query then returned in 0.000194 seconds.
 - Active time: not yet entered.
+
+## Investigation agent and CLI, October 6
+- Added the mocked investigation agent, CLI, and application prompt.
+  No live model call was made.
+- Checked: .venv/bin/python -m pytest — 25 passed in 2.59s.
+- Active time: not yet entered.
+
+## Investigation review fixes, October 6
+- Before the fix, .venv/bin/python -m pytest --tb=line -q reported
+  10 failed, 26 passed in 2.90s. Truncation or a later SQL error could
+  still be marked complete. Evidence IDs restarted at E1. Replay omitted
+  the saved question, definitions, and SQL. Live commands did not load .env.
+- After the fix, .venv/bin/python -m pytest --tb=short -q reported
+  36 passed in 2.82s. No live model call was made.
+- Active time: not yet entered.
+
+## SDK response serialization, October 6
+- The first live investigation, inv_030848b96125484bac45bb814b259f84,
+  failed on the second request: Unknown parameter 'input[1].async_'.
+  The report is preserved. model_dump(mode="json") wrote the Python
+  field name and unset defaults.
+- SDK objects now serialize with to_dict(mode="json"), which uses API
+  aliases and omits unset fields. A regression builds real SDK response
+  objects and mocks the request. No further live call was made.
+- Checked: .venv/bin/python -m pytest — 37 passed in 2.80s.
+- Active time: not yet entered.
+
+## Investigation prompt, October 6
+- Updated investigator/prompts/investigation.md so later investigations
+  ask SQL for gross_sales_cents, refunds_cents, and net_sales_cents,
+  keep period or segment keys that appear only on the refund side, and
+  state in the final explanation that refund reasons are unknown from
+  these records. SQL stays model-generated. Saved reports and their
+  prompt snapshots were not rewritten. No live call was made.
+- Active time: not yet entered.
+
+Active time so far: 2.5 hours, including planning.

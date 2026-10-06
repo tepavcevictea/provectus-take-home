@@ -1,0 +1,319 @@
+{
+  "investigation_id": "inv_030848b96125484bac45bb814b259f84",
+  "question_id": "q_bd88dc0625fc4309bb2883b601ad37b7",
+  "parent_investigation_id": null,
+  "question": "How did gross sales, refunds, and net sales change from August to September 2026, and which customer segment contributed to the change?",
+  "definitions": [
+    "Use customers, orders, and refunds. IDs link refunds to orders and orders to customers; one order can have multiple refunds.",
+    "Gross sales for a period sum orders by order_date. Refunds for that period sum refunds by refund_date. Net sales equal gross sales minus refunds. Use UTC dates and half-open periods: start included, end excluded.",
+    "Use integer USD cents. Group order and refund totals separately before combining them; joining raw refund rows to orders can repeat order amounts.",
+    "Assign refunds to the segment of the customer on the original order. The records show amounts and dates, not why a customer requested a refund."
+  ],
+  "assumptions": [
+    "Stored dates are ISO-8601 calendar dates (YYYY-MM-DD). Lexicographic comparison matches chronological order for that format.",
+    "Query time, row, byte, and attempt limits are engineering settings, not business rules."
+  ],
+  "prompt_snapshot": "# Sales investigation instructions\n\nYou investigate a local SQLite database through the `request_sql` tool. The application chooses question IDs and attempt budgets. You cannot set them or reset them.\n\nEvery number in a final explanation must come from a tool result and cite that result's evidence ID. Do not invent figures, dates, or refund motives.\n\n## Business definitions\n\nThese rules are the source of truth:\n\n1. Use customers, orders, and refunds. IDs link refunds to orders and orders to customers; one order can have multiple refunds.\n2. Gross sales for a period sum orders by order_date. Refunds for that period sum refunds by refund_date. Net sales equal gross sales minus refunds. Use UTC dates and half-open periods: start included, end excluded.\n3. Use integer USD cents. Group order and refund totals separately before combining them; joining raw refund rows to orders can repeat order amounts.\n4. Assign refunds to the segment of the customer on the original order. The records show amounts and dates, not why a customer requested a refund.\n\n## How to investigate\n\n- Give every SQL request a short purpose of at most 200 characters.\n- Request one query at a time. Read the tool result, then choose any follow-up from that result.\n- Cite the full evidence ID returned with a tool result. It is scoped to one investigation, such as `inv_<32 hex characters>:E1`. A bare E-number is not a citation. Cite an ID only when that result supports the conclusion.\n- For the main sales investigation, obtain one successful query and, after its result is returned, one follow-up query that uses that evidence. Only then write the final explanation. A query that errors, times out, or is truncated does not make the investigation complete.\n- Explain amounts as integer cents and as USD (cents divided by 100). State the UTC date range explicitly, with the start included and the end excluded.\n- Report the numerical refund contribution separately from why a customer requested a refund. The records do not contain refund reasons, so the reason is unknown.\n- If a query fails, is truncated, times out, or an attempt budget is exhausted, say what is incomplete. Do not fill the gap.\n- The database allows one read-only statement at a time against customers, orders, and refunds only.\n\nThe table schema is appended to this prompt by the application.\n",
+  "schema_snapshot": "CREATE TABLE customers (customer_id TEXT PRIMARY KEY, segment TEXT NOT NULL);\nCREATE TABLE orders (order_id TEXT PRIMARY KEY, customer_id TEXT NOT NULL REFERENCES customers(customer_id), order_date TEXT NOT NULL, amount_cents INTEGER NOT NULL CHECK(amount_cents >= 0));\nCREATE TABLE refunds (refund_id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES orders(order_id), refund_date TEXT NOT NULL, amount_cents INTEGER NOT NULL CHECK(amount_cents >= 0));\n",
+  "model_settings": {
+    "model": "gpt-4.1-mini-2025-04-14",
+    "temperature": 0,
+    "max_output_tokens": 1500,
+    "store": false,
+    "parallel_tool_calls": false,
+    "timeout_seconds": 20.0,
+    "max_retries": 0,
+    "max_model_requests": 7,
+    "max_question_characters": 2000,
+    "max_request_bytes": 65536
+  },
+  "model_responses": [
+    {
+      "request_index": 1,
+      "response_source": "live",
+      "error": null,
+      "response": {
+        "id": "resp_0f0bfe01b69e6759016ac51970ace487d2bb04bb6d0f2f2937",
+        "access_programs": null,
+        "created_at": 1791302000.0,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": "# Sales investigation instructions\n\nYou investigate a local SQLite database through the `request_sql` tool. The application chooses question IDs and attempt budgets. You cannot set them or reset them.\n\nEvery number in a final explanation must come from a tool result and cite that result's evidence ID. Do not invent figures, dates, or refund motives.\n\n## Business definitions\n\nThese rules are the source of truth:\n\n1. Use customers, orders, and refunds. IDs link refunds to orders and orders to customers; one order can have multiple refunds.\n2. Gross sales for a period sum orders by order_date. Refunds for that period sum refunds by refund_date. Net sales equal gross sales minus refunds. Use UTC dates and half-open periods: start included, end excluded.\n3. Use integer USD cents. Group order and refund totals separately before combining them; joining raw refund rows to orders can repeat order amounts.\n4. Assign refunds to the segment of the customer on the original order. The records show amounts and dates, not why a customer requested a refund.\n\n## How to investigate\n\n- Give every SQL request a short purpose of at most 200 characters.\n- Request one query at a time. Read the tool result, then choose any follow-up from that result.\n- Cite the full evidence ID returned with a tool result. It is scoped to one investigation, such as `inv_<32 hex characters>:E1`. A bare E-number is not a citation. Cite an ID only when that result supports the conclusion.\n- For the main sales investigation, obtain one successful query and, after its result is returned, one follow-up query that uses that evidence. Only then write the final explanation. A query that errors, times out, or is truncated does not make the investigation complete.\n- Explain amounts as integer cents and as USD (cents divided by 100). State the UTC date range explicitly, with the start included and the end excluded.\n- Report the numerical refund contribution separately from why a customer requested a refund. The records do not contain refund reasons, so the reason is unknown.\n- If a query fails, is truncated, times out, or an attempt budget is exhausted, say what is incomplete. Do not fill the gap.\n- The database allows one read-only statement at a time against customers, orders, and refunds only.\n\nThe table schema is appended to this prompt by the application.\n\n## Schema\n\nCREATE TABLE customers (customer_id TEXT PRIMARY KEY, segment TEXT NOT NULL);\nCREATE TABLE orders (order_id TEXT PRIMARY KEY, customer_id TEXT NOT NULL REFERENCES customers(customer_id), order_date TEXT NOT NULL, amount_cents INTEGER NOT NULL CHECK(amount_cents >= 0));\nCREATE TABLE refunds (refund_id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES orders(order_id), refund_date TEXT NOT NULL, amount_cents INTEGER NOT NULL CHECK(amount_cents >= 0));\n",
+        "metadata": {},
+        "model": "gpt-4.1-mini-2025-04-14",
+        "object": "response",
+        "output": [
+          {
+            "arguments": "{\"purpose\":\"Get gross sales, refunds, and net sales by month and customer segment for August and September 2026\",\"sql\":\"WITH monthly_sales AS (\\n  SELECT\\n    strftime('%Y-%m', order_date) AS month,\\n    c.segment,\\n    SUM(o.amount_cents) AS gross_sales\\n  FROM orders o\\n  JOIN customers c ON o.customer_id = c.customer_id\\n  WHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\\n  GROUP BY month, c.segment\\n), monthly_refunds AS (\\n  SELECT\\n    strftime('%Y-%m', r.refund_date) AS month,\\n    c.segment,\\n    SUM(r.amount_cents) AS refunds\\n  FROM refunds r\\n  JOIN orders o ON r.order_id = o.order_id\\n  JOIN customers c ON o.customer_id = c.customer_id\\n  WHERE r.refund_date >= '2026-08-01' AND r.refund_date < '2026-10-01'\\n  GROUP BY month, c.segment\\n)\\nSELECT\\n  ms.month,\\n  ms.segment,\\n  ms.gross_sales,\\n  COALESCE(mr.refunds, 0) AS refunds,\\n  ms.gross_sales - COALESCE(mr.refunds, 0) AS net_sales\\nFROM monthly_sales ms\\nLEFT JOIN monthly_refunds mr ON ms.month = mr.month AND ms.segment = mr.segment\\nORDER BY ms.month, ms.segment;\"}",
+            "call_id": "call_x6wnxMWc2o9dCD2IiKdYhom8",
+            "name": "request_sql",
+            "type": "function_call",
+            "id": "fc_0f0bfe01b69e6759016ac519721c6487d2bcce6e1666ca3ce0",
+            "async_": null,
+            "caller": null,
+            "namespace": null,
+            "status": "completed"
+          }
+        ],
+        "parallel_tool_calls": false,
+        "temperature": 0.0,
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "name": "request_sql",
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "purpose": {
+                  "type": "string",
+                  "description": "Short reason for this query, at most 200 characters, based on the question and evidence already returned."
+                },
+                "sql": {
+                  "type": "string",
+                  "description": "One read-only SQL statement."
+                }
+              },
+              "required": [
+                "purpose",
+                "sql"
+              ]
+            },
+            "strict": true,
+            "type": "function",
+            "allowed_callers": null,
+            "async_": null,
+            "defer_loading": null,
+            "description": "Run one read-only SQL statement against customers, orders, and refunds. Call it once, wait for the evidence result, then decide whether another query is useful.",
+            "output_schema": null
+          }
+        ],
+        "top_p": 1.0,
+        "background": false,
+        "completed_at": 1791302004.0,
+        "conversation": null,
+        "max_output_tokens": 1500,
+        "max_tool_calls": null,
+        "moderation": null,
+        "previous_response_id": null,
+        "prompt": null,
+        "prompt_cache_diagnostics": null,
+        "prompt_cache_key": null,
+        "prompt_cache_options": null,
+        "prompt_cache_retention": "in_memory",
+        "reasoning": {
+          "context": null,
+          "effort": null,
+          "generate_summary": null,
+          "mode": null,
+          "summary": null
+        },
+        "safety_identifier": null,
+        "service_tier": "default",
+        "status": "completed",
+        "text": {
+          "format": {
+            "type": "text"
+          },
+          "verbosity": "medium"
+        },
+        "top_logprobs": 0,
+        "truncation": "disabled",
+        "usage": {
+          "input_tokens": 708,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 331,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 1039
+        },
+        "user": null,
+        "billing": {
+          "payer": "developer"
+        },
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "store": false,
+        "tool_usage": {
+          "image_gen": {
+            "input_tokens": 0,
+            "input_tokens_details": {
+              "image_tokens": 0,
+              "text_tokens": 0
+            },
+            "output_tokens": 0,
+            "output_tokens_details": {
+              "image_tokens": 0,
+              "text_tokens": 0
+            },
+            "total_tokens": 0
+          },
+          "web_search": {
+            "num_requests": 0
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 708,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 331,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1039
+      }
+    },
+    {
+      "request_index": 2,
+      "response_source": "live",
+      "error": "BadRequestError: Error code: 400 - {'error': {'message': \"Unknown parameter: 'input[1].async_'. Did you mean 'async'?\", 'type': 'invalid_request_error', 'param': 'input[1].async_', 'code': 'unknown_parameter'}}",
+      "response": null,
+      "usage": null
+    }
+  ],
+  "usage": [
+    {
+      "input_tokens": 708,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 331,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 1039
+    }
+  ],
+  "sql_attempts": [
+    {
+      "evidence_id": "inv_030848b96125484bac45bb814b259f84:E1",
+      "purpose": "Get gross sales, refunds, and net sales by month and customer segment for August and September 2026",
+      "sql": "WITH monthly_sales AS (\n  SELECT\n    strftime('%Y-%m', order_date) AS month,\n    c.segment,\n    SUM(o.amount_cents) AS gross_sales\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\n  GROUP BY month, c.segment\n), monthly_refunds AS (\n  SELECT\n    strftime('%Y-%m', r.refund_date) AS month,\n    c.segment,\n    SUM(r.amount_cents) AS refunds\n  FROM refunds r\n  JOIN orders o ON r.order_id = o.order_id\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE r.refund_date >= '2026-08-01' AND r.refund_date < '2026-10-01'\n  GROUP BY month, c.segment\n)\nSELECT\n  ms.month,\n  ms.segment,\n  ms.gross_sales,\n  COALESCE(mr.refunds, 0) AS refunds,\n  ms.gross_sales - COALESCE(mr.refunds, 0) AS net_sales\nFROM monthly_sales ms\nLEFT JOIN monthly_refunds mr ON ms.month = mr.month AND ms.segment = mr.segment\nORDER BY ms.month, ms.segment;",
+      "executed": true,
+      "status": "ok",
+      "result": {
+        "question_id": "q_bd88dc0625fc4309bb2883b601ad37b7",
+        "sql": "WITH monthly_sales AS (\n  SELECT\n    strftime('%Y-%m', order_date) AS month,\n    c.segment,\n    SUM(o.amount_cents) AS gross_sales\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\n  GROUP BY month, c.segment\n), monthly_refunds AS (\n  SELECT\n    strftime('%Y-%m', r.refund_date) AS month,\n    c.segment,\n    SUM(r.amount_cents) AS refunds\n  FROM refunds r\n  JOIN orders o ON r.order_id = o.order_id\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE r.refund_date >= '2026-08-01' AND r.refund_date < '2026-10-01'\n  GROUP BY month, c.segment\n)\nSELECT\n  ms.month,\n  ms.segment,\n  ms.gross_sales,\n  COALESCE(mr.refunds, 0) AS refunds,\n  ms.gross_sales - COALESCE(mr.refunds, 0) AS net_sales\nFROM monthly_sales ms\nLEFT JOIN monthly_refunds mr ON ms.month = mr.month AND ms.segment = mr.segment\nORDER BY ms.month, ms.segment;",
+        "status": "ok",
+        "columns": [
+          "month",
+          "segment",
+          "gross_sales",
+          "refunds",
+          "net_sales"
+        ],
+        "rows": [
+          [
+            "2026-08",
+            "large",
+            5000,
+            0,
+            5000
+          ],
+          [
+            "2026-08",
+            "small",
+            5000,
+            1000,
+            4000
+          ],
+          [
+            "2026-09",
+            "large",
+            5000,
+            0,
+            5000
+          ],
+          [
+            "2026-09",
+            "small",
+            5000,
+            3000,
+            2000
+          ]
+        ],
+        "truncated": false,
+        "truncation_reason": null,
+        "error": null,
+        "executed": true,
+        "attempt_number": 1,
+        "counts_against_budget": true
+      },
+      "error": null
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "inv_030848b96125484bac45bb814b259f84:E1",
+      "purpose": "Get gross sales, refunds, and net sales by month and customer segment for August and September 2026",
+      "sql": "WITH monthly_sales AS (\n  SELECT\n    strftime('%Y-%m', order_date) AS month,\n    c.segment,\n    SUM(o.amount_cents) AS gross_sales\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\n  GROUP BY month, c.segment\n), monthly_refunds AS (\n  SELECT\n    strftime('%Y-%m', r.refund_date) AS month,\n    c.segment,\n    SUM(r.amount_cents) AS refunds\n  FROM refunds r\n  JOIN orders o ON r.order_id = o.order_id\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE r.refund_date >= '2026-08-01' AND r.refund_date < '2026-10-01'\n  GROUP BY month, c.segment\n)\nSELECT\n  ms.month,\n  ms.segment,\n  ms.gross_sales,\n  COALESCE(mr.refunds, 0) AS refunds,\n  ms.gross_sales - COALESCE(mr.refunds, 0) AS net_sales\nFROM monthly_sales ms\nLEFT JOIN monthly_refunds mr ON ms.month = mr.month AND ms.segment = mr.segment\nORDER BY ms.month, ms.segment;",
+      "result": {
+        "question_id": "q_bd88dc0625fc4309bb2883b601ad37b7",
+        "sql": "WITH monthly_sales AS (\n  SELECT\n    strftime('%Y-%m', order_date) AS month,\n    c.segment,\n    SUM(o.amount_cents) AS gross_sales\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\n  GROUP BY month, c.segment\n), monthly_refunds AS (\n  SELECT\n    strftime('%Y-%m', r.refund_date) AS month,\n    c.segment,\n    SUM(r.amount_cents) AS refunds\n  FROM refunds r\n  JOIN orders o ON r.order_id = o.order_id\n  JOIN customers c ON o.customer_id = c.customer_id\n  WHERE r.refund_date >= '2026-08-01' AND r.refund_date < '2026-10-01'\n  GROUP BY month, c.segment\n)\nSELECT\n  ms.month,\n  ms.segment,\n  ms.gross_sales,\n  COALESCE(mr.refunds, 0) AS refunds,\n  ms.gross_sales - COALESCE(mr.refunds, 0) AS net_sales\nFROM monthly_sales ms\nLEFT JOIN monthly_refunds mr ON ms.month = mr.month AND ms.segment = mr.segment\nORDER BY ms.month, ms.segment;",
+        "status": "ok",
+        "columns": [
+          "month",
+          "segment",
+          "gross_sales",
+          "refunds",
+          "net_sales"
+        ],
+        "rows": [
+          [
+            "2026-08",
+            "large",
+            5000,
+            0,
+            5000
+          ],
+          [
+            "2026-08",
+            "small",
+            5000,
+            1000,
+            4000
+          ],
+          [
+            "2026-09",
+            "large",
+            5000,
+            0,
+            5000
+          ],
+          [
+            "2026-09",
+            "small",
+            5000,
+            3000,
+            2000
+          ]
+        ],
+        "truncated": false,
+        "truncation_reason": null,
+        "error": null,
+        "executed": true,
+        "attempt_number": 1,
+        "counts_against_budget": true
+      }
+    }
+  ],
+  "rejected_tool_calls": [],
+  "status": "api_error",
+  "explanation": null,
+  "conclusion_evidence_ids": [],
+  "unknown_citations": [],
+  "explanation_verification": "not_deterministically_verified",
+  "incomplete_reason": "BadRequestError: Error code: 400 - {'error': {'message': \"Unknown parameter: 'input[1].async_'. Did you mean 'async'?\", 'type': 'invalid_request_error', 'param': 'input[1].async_', 'code': 'unknown_parameter'}}",
+  "response_source": "live",
+  "amount_units": "integer USD cents; USD equals cents divided by 100",
+  "date_ranges": "UTC, start included and end excluded",
+  "refund_reasons": "unknown; the records contain amounts and dates only"
+}

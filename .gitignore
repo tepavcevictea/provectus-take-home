@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local investigation reports
+investigations/
+
+.DS_Store
+/Archive*.zip
