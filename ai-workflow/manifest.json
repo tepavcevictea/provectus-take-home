@@ -8,7 +8,7 @@
         "ai-workflow/README.md",
         "docs/work-log.md"
       ],
-      "notes": "Cursor 3.23.23, user-reported and not rechecked in this session. Coding-model display name, user-reported and not independently confirmed: Grok 4.7 High. This is not a verified API model ID. Reasoning: High, selected by the user. Python 3.12.14 with an existing .venv, user-reported and not rechecked in this session. Planning-model display name, user-reported and not independently confirmed: ChatGPT-6.1 Sol High. This is not a verified API model ID. A direct read of docs/work-log.md from disk during this review returned 0 bytes, so the setup and seed-verification entries are not in the saved file. Provider API model IDs, temperature, and output limits were not exported. No defaults for those parameters are known, so none are recorded. The user may switch the coding model later for cost; that change has not happened."
+      "notes": "Cursor 3.23.23, user-reported and not rechecked in this session. Coding-model display name, user-reported and not independently confirmed: Grok 4.7 High. This is not a verified API model ID. Reasoning: High, selected by the user. Python 3.12.14 with an existing .venv, user-reported and not rechecked in this session. Planning assistance is recorded in docs/work-log.md as ChatGPT, without an API model ID. The display name ChatGPT-6.1 Sol High is user-reported and not independently confirmed; it is not a verified API model ID. pytest 9.1.1 is recorded in requirements-dev.txt from the version installed into .venv. Provider API model IDs, temperature, and output limits were not exported. No defaults for those parameters are known, so none are recorded. The user may switch the coding model later for cost; that change has not happened."
     },
     "plugins_and_extensions": {
       "status": "used",
@@ -41,9 +41,13 @@
       "status": "used",
       "files": [
         "AGENTS.md",
-        "ai-workflow/prompts/001-bootstrap.md"
+        "ai-workflow/prompts/001-bootstrap.md",
+        "ai-workflow/prompts/002-sql-tool.md",
+        "ai-workflow/prompts/003-sql-review.md",
+        "ai-workflow/workflow-example.md",
+        "ai-workflow/snapshots/query-tool-before-review.py.txt"
       ],
-      "notes": "001-bootstrap.md is the saved bootstrap instruction. AGENTS.md is the project instruction file derived from it. data/domain.md remains the domain source of truth and is not copied here."
+      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. workflow-example.md records the real before-and-after correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
     },
     "tool_and_mcp_settings": {
       "status": "used",
@@ -92,8 +96,8 @@
       "name": "ChatGPT-6.1 Sol High",
       "category": "development_tools_and_models",
       "purpose": "User-reported display name for planning assistance. Not independently confirmed and not a verified API model ID. Interpreted the assignment, planned the work, gave terminal setup instructions, and inspected the seed records. Development-time only.",
-      "original_path_or_scope": "User-reported during bootstrap. A direct read of docs/work-log.md from disk during this review returned 0 bytes, so the setup and seed-verification entries are not in the saved file.",
-      "saved_path": "ai-workflow/README.md",
+      "original_path_or_scope": "User-reported display name from bootstrap. docs/work-log.md records ChatGPT assistance and does not contain an API model ID.",
+      "saved_path": "docs/work-log.md",
       "version_or_commit": "not-exportable",
       "used_during": "Project setup and starter-data inspection before bootstrap",
       "status": "used",
@@ -102,6 +106,17 @@
         "Provider API model ID was not exported.",
         "Chat transcript was not copied."
       ]
+    },
+    {
+      "name": "pytest",
+      "category": "development_tools_and_models",
+      "purpose": "Test runner for the query tool. Installed into the existing .venv with .venv/bin/python -m pip install pytest.",
+      "original_path_or_scope": ".venv",
+      "saved_path": "requirements-dev.txt",
+      "version_or_commit": "9.1.1",
+      "used_during": "2026-10-06 query tool",
+      "status": "used",
+      "redactions": []
     },
     {
       "name": "Python",
@@ -122,6 +137,50 @@
       "saved_path": "AGENTS.md",
       "version_or_commit": "uncommitted",
       "used_during": "2026-10-06 bootstrap onward",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "SQL review instruction",
+      "category": "prompts_and_rules",
+      "purpose": "Saved instruction for the three query-tool review fixes.",
+      "original_path_or_scope": "Cursor chat on 2026-10-06",
+      "saved_path": "ai-workflow/prompts/003-sql-review.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 query tool review",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Query tool before review",
+      "category": "prompts_and_rules",
+      "purpose": "Preserved copy of investigator/query_tool.py before the review fixes.",
+      "original_path_or_scope": "investigator/query_tool.py",
+      "saved_path": "ai-workflow/snapshots/query-tool-before-review.py.txt",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 query tool review",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Workflow example",
+      "category": "prompts_and_rules",
+      "purpose": "Real review correction with the failing pytest output and the results after the fix.",
+      "original_path_or_scope": "ai-workflow/prompts/003-sql-review.md",
+      "saved_path": "ai-workflow/workflow-example.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 query tool review",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "SQL tool instruction",
+      "category": "prompts_and_rules",
+      "purpose": "Saved instruction for the bounded read-only SQLite query tool.",
+      "original_path_or_scope": "Cursor chat on 2026-10-06",
+      "saved_path": "ai-workflow/prompts/002-sql-tool.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 query tool",
       "status": "used",
       "redactions": []
     },
@@ -184,5 +243,5 @@
     }
   ],
   "replay_command": "pending",
-  "workflow_example_path": "pending"
+  "workflow_example_path": "ai-workflow/workflow-example.md"
 }

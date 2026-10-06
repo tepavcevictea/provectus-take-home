@@ -1,0 +1,462 @@
+"""Bounded read-only SQL against the application database.
+
+Engineering limits, not business rules: 2 seconds, 200 rows, and 64 KiB of
+serialized columns and rows. The database path is chosen by the application.
+SQL text cannot select another file.
+"""
+
+from __future__ import annotations
+
+import copy
+import json
+import sqlite3
+import time
+from pathlib import Path
+from typing import Any
+
+TIMEOUT_SECONDS = 2.0
+MAX_ROWS = 200
+MAX_RESULT_BYTES = 64 * 1024
+MAX_ATTEMPTS = 6
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SEED_DATABASE_PATH = REPO_ROOT / "data" / "seed.sqlite"
+
+_ALLOWED_TABLES = frozenset({"customers", "orders", "refunds"})
+_ALLOWED_FUNCTIONS = frozenset(
+    {
+        "abs",
+        "avg",
+        "char",
+        "coalesce",
+        "count",
+        "date",
+        "datetime",
+        "glob",
+        "group_concat",
+        "hex",
+        "ifnull",
+        "iif",
+        "instr",
+        "julianday",
+        "length",
+        "like",
+        "likelihood",
+        "likely",
+        "lower",
+        "ltrim",
+        "max",
+        "min",
+        "nullif",
+        "printf",
+        "quote",
+        "random",
+        "replace",
+        "round",
+        "rtrim",
+        "strftime",
+        "substr",
+        "substring",
+        "sum",
+        "time",
+        "total",
+        "trim",
+        "typeof",
+        "unicode",
+        "unixepoch",
+        "unlikely",
+        "upper",
+    }
+)
+_PROGRESS_INTERVAL = 1000
+
+
+def open_query_tool() -> QueryTool:
+    """Open the application seed database. Callers do not choose the path."""
+    return QueryTool(SEED_DATABASE_PATH)
+
+
+class QueryTool:
+    """Execute one read-only statement at a time for a fixed database path."""
+
+    def __init__(
+        self,
+        database_path: Path | str,
+        *,
+        timeout_seconds: float = TIMEOUT_SECONDS,
+        max_rows: int = MAX_ROWS,
+        max_result_bytes: int = MAX_RESULT_BYTES,
+        max_attempts: int = MAX_ATTEMPTS,
+    ) -> None:
+        self.database_path = Path(database_path)
+        self.timeout_seconds = timeout_seconds
+        self.max_rows = max_rows
+        self.max_result_bytes = max_result_bytes
+        self.max_attempts = max_attempts
+        self._history: dict[str, list[dict[str, Any]]] = {}
+
+    def execute(self, question_id: str, sql: str) -> dict[str, Any]:
+        if not isinstance(question_id, str) or not isinstance(sql, str):
+            raise TypeError("question_id and sql must be strings")
+        bucket = self._history.setdefault(question_id, [])
+        used = sum(1 for item in bucket if item["counts_against_budget"])
+        if used >= self.max_attempts:
+            record = _record(
+                question_id=question_id,
+                sql=sql,
+                status="budget_exhausted",
+                columns=[],
+                rows=[],
+                truncated=False,
+                truncation_reason=None,
+                error=(
+                    f"Query budget is exhausted ({self.max_attempts} attempts). "
+                    "This request was not executed."
+                ),
+                executed=False,
+                attempt_number=None,
+                counts_against_budget=False,
+            )
+            return self._remember(bucket, record)
+        record = self._execute_once(question_id, sql, used + 1)
+        return self._remember(bucket, record)
+
+    def history(self, question_id: str) -> list[dict[str, Any]]:
+        return [copy.deepcopy(item) for item in self._history.get(question_id, [])]
+
+    def _remember(self, bucket: list[dict[str, Any]], record: dict[str, Any]) -> dict[str, Any]:
+        bucket.append(copy.deepcopy(record))
+        return copy.deepcopy(record)
+
+    def _execute_once(self, question_id: str, sql: str, attempt_number: int) -> dict[str, Any]:
+        authorizer, denial = _authorizer()
+        timed_out = {"value": False}
+        deadline = time.monotonic() + self.timeout_seconds
+        connection = None
+        try:
+            connection = _connect_readonly(self.database_path, lock_timeout_seconds=0)
+            connection.set_authorizer(authorizer)
+            connection.set_progress_handler(
+                lambda: _interrupt_if_due(deadline, timed_out),
+                _PROGRESS_INTERVAL,
+            )
+            if time.monotonic() >= deadline:
+                raise _TimedOut()
+            cursor = connection.execute(sql)
+            if cursor.description is None:
+                return _record(
+                    question_id=question_id,
+                    sql=sql,
+                    status="error",
+                    columns=[],
+                    rows=[],
+                    truncated=False,
+                    truncation_reason=None,
+                    error=_bounded_message(
+                        "The request did not execute a read query.",
+                        self.max_result_bytes,
+                    ),
+                    executed=True,
+                    attempt_number=attempt_number,
+                    counts_against_budget=True,
+                )
+            columns = [column[0] for column in cursor.description]
+            if _serialized_size(columns, []) > self.max_result_bytes:
+                return _metadata_cap_record(
+                    question_id,
+                    sql,
+                    attempt_number,
+                    self.max_result_bytes,
+                )
+            try:
+                rows, truncated, reason = _fetch_bounded(
+                    cursor,
+                    columns,
+                    max_rows=self.max_rows,
+                    max_result_bytes=self.max_result_bytes,
+                    deadline=deadline,
+                    timed_out=timed_out,
+                )
+            except _TimedOut as exc:
+                exc.columns = columns
+                raise
+            status = "truncated" if truncated else "ok"
+            return _record(
+                question_id=question_id,
+                sql=sql,
+                status=status,
+                columns=columns,
+                rows=rows,
+                truncated=truncated,
+                truncation_reason=reason,
+                error=None,
+                executed=True,
+                attempt_number=attempt_number,
+                counts_against_budget=True,
+            )
+        except _TimedOut as exc:
+            return _timeout_record(
+                question_id,
+                sql,
+                attempt_number,
+                self.timeout_seconds,
+                self.max_result_bytes,
+                exc.columns,
+                exc.rows,
+            )
+        except sqlite3.ProgrammingError as exc:
+            message = str(exc)
+            if "one statement" in message.lower():
+                message = "Only one SQL statement is allowed per request."
+            return _error_record(question_id, sql, attempt_number, self.max_result_bytes, message)
+        except sqlite3.Error as exc:
+            if timed_out["value"] or "interrupted" in str(exc).lower():
+                return _timeout_record(
+                    question_id,
+                    sql,
+                    attempt_number,
+                    self.timeout_seconds,
+                    self.max_result_bytes,
+                    [],
+                    [],
+                )
+            message = denial["reason"] or str(exc)
+            if "locked" in message.lower():
+                message = (
+                    "Database is locked. The query did not wait for the lock, "
+                    "so the wait cannot exceed the execution deadline."
+                )
+            return _error_record(question_id, sql, attempt_number, self.max_result_bytes, message)
+        finally:
+            if connection is not None:
+                connection.close()
+
+
+def _connect_readonly(database_path: Path, lock_timeout_seconds: float) -> sqlite3.Connection:
+    uri = f"{database_path.resolve().as_uri()}?mode=ro"
+    # sqlite3's default busy timeout is 5 seconds, which can outlast the
+    # query deadline. Zero wait fails immediately when the file is locked.
+    connection = sqlite3.connect(uri, uri=True, timeout=lock_timeout_seconds)
+    connection.execute("PRAGMA query_only = ON")
+    try:
+        connection.enable_load_extension(False)
+    except (AttributeError, sqlite3.Error):
+        pass
+    return connection
+
+
+def _authorizer() -> tuple[Any, dict[str, str | None]]:
+    denial: dict[str, str | None] = {"reason": None}
+
+    def authorizer(action: int, arg1: str | None, arg2: str | None, db_name: str | None, source: str | None) -> int:
+        del source
+        if action in (sqlite3.SQLITE_SELECT, sqlite3.SQLITE_RECURSIVE):
+            return sqlite3.SQLITE_OK
+        if action == sqlite3.SQLITE_READ:
+            table = (arg1 or "").casefold()
+            database = (db_name or "main").casefold()
+            if database != "main" or table not in _ALLOWED_TABLES:
+                shown = arg1 or "(unknown)"
+                denial["reason"] = (
+                    f"Read access to {shown} is not allowed. "
+                    "Allowed tables: customers, orders, and refunds."
+                )
+                return sqlite3.SQLITE_DENY
+            return sqlite3.SQLITE_OK
+        if action == sqlite3.SQLITE_FUNCTION:
+            name = (arg2 or "").casefold()
+            if name in _ALLOWED_FUNCTIONS:
+                return sqlite3.SQLITE_OK
+            denial["reason"] = f"Function {name or '(unknown)'} is not allowed."
+            return sqlite3.SQLITE_DENY
+        denial["reason"] = (
+            "This SQL operation is not allowed. "
+            "Only single read queries against customers, orders, and refunds are permitted."
+        )
+        return sqlite3.SQLITE_DENY
+
+    return authorizer, denial
+
+
+def _interrupt_if_due(deadline: float, timed_out: dict[str, bool]) -> int:
+    if time.monotonic() >= deadline:
+        timed_out["value"] = True
+        return 1
+    return 0
+
+
+def _fetch_bounded(
+    cursor: sqlite3.Cursor,
+    columns: list[str],
+    *,
+    max_rows: int,
+    max_result_bytes: int,
+    deadline: float,
+    timed_out: dict[str, bool],
+) -> tuple[list[list[Any]], bool, str | None]:
+    rows: list[list[Any]] = []
+    while True:
+        if time.monotonic() >= deadline:
+            timed_out["value"] = True
+            raise _TimedOut(columns, rows)
+        try:
+            fetched = cursor.fetchone()
+        except sqlite3.Error:
+            if timed_out["value"] or time.monotonic() >= deadline:
+                timed_out["value"] = True
+                raise _TimedOut(columns, rows) from None
+            raise
+        if fetched is None:
+            return rows, False, None
+        candidate = rows + [_json_row(fetched)]
+        if _serialized_size(columns, candidate) > max_result_bytes:
+            return rows, True, "byte_limit"
+        rows = candidate
+        if len(rows) == max_rows:
+            if time.monotonic() >= deadline:
+                timed_out["value"] = True
+                raise _TimedOut(columns, rows)
+            try:
+                extra = cursor.fetchone()
+            except sqlite3.Error:
+                if timed_out["value"] or time.monotonic() >= deadline:
+                    timed_out["value"] = True
+                    raise _TimedOut(columns, rows) from None
+                raise
+            if extra is not None:
+                return rows, True, "row_limit"
+            return rows, False, None
+
+
+def _json_row(fetched: tuple[Any, ...]) -> list[Any]:
+    return [_json_value(value) for value in fetched]
+
+
+def _json_value(value: Any) -> Any:
+    if isinstance(value, memoryview):
+        value = bytes(value)
+    if isinstance(value, bytes):
+        return value.hex()
+    return value
+
+
+def _serialized_size(columns: list[str], rows: list[list[Any]]) -> int:
+    payload = {"columns": columns, "rows": rows}
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return len(encoded)
+
+
+def _timeout_record(
+    question_id: str,
+    sql: str,
+    attempt_number: int,
+    timeout_seconds: float,
+    max_result_bytes: int,
+    columns: list[str],
+    rows: list[list[Any]],
+) -> dict[str, Any]:
+    seconds = _format_seconds(timeout_seconds)
+    message = f"Query timed out after {seconds}."
+    if _serialized_size(columns, rows) > max_result_bytes:
+        columns, rows = [], []
+        message = (
+            f"{message} Column metadata exceeds the {max_result_bytes} byte "
+            "serialized result cap. The result was omitted."
+        )
+    elif rows:
+        message = f"{message} Returned rows are partial and incomplete."
+    record = _error_record(question_id, sql, attempt_number, max_result_bytes, message)
+    record["columns"] = columns
+    record["rows"] = rows
+    return record
+
+
+def _metadata_cap_record(
+    question_id: str,
+    sql: str,
+    attempt_number: int,
+    max_result_bytes: int,
+) -> dict[str, Any]:
+    return _error_record(
+        question_id,
+        sql,
+        attempt_number,
+        max_result_bytes,
+        (
+            f"Column metadata exceeds the {max_result_bytes} byte serialized result cap. "
+            "The result was omitted."
+        ),
+    )
+
+
+def _format_seconds(timeout_seconds: float) -> str:
+    if timeout_seconds == int(timeout_seconds):
+        unit = "second" if timeout_seconds == 1 else "seconds"
+        return f"{int(timeout_seconds)} {unit}"
+    return f"{timeout_seconds} seconds"
+
+
+def _bounded_message(message: str, max_result_bytes: int) -> str:
+    if len(message.encode("utf-8")) <= max_result_bytes:
+        return message
+    return (
+        f"The error detail exceeds the {max_result_bytes} byte serialized result cap. "
+        "The detail was omitted."
+    )
+
+
+def _error_record(
+    question_id: str,
+    sql: str,
+    attempt_number: int,
+    max_result_bytes: int,
+    message: str,
+) -> dict[str, Any]:
+    return _record(
+        question_id=question_id,
+        sql=sql,
+        status="error",
+        columns=[],
+        rows=[],
+        truncated=False,
+        truncation_reason=None,
+        error=_bounded_message(message, max_result_bytes),
+        executed=True,
+        attempt_number=attempt_number,
+        counts_against_budget=True,
+    )
+
+
+def _record(
+    *,
+    question_id: str,
+    sql: str,
+    status: str,
+    columns: list[str],
+    rows: list[list[Any]],
+    truncated: bool,
+    truncation_reason: str | None,
+    error: str | None,
+    executed: bool,
+    attempt_number: int | None,
+    counts_against_budget: bool,
+) -> dict[str, Any]:
+    return {
+        "question_id": question_id,
+        "sql": sql,
+        "status": status,
+        "columns": columns,
+        "rows": rows,
+        "truncated": truncated,
+        "truncation_reason": truncation_reason,
+        "error": error,
+        "executed": executed,
+        "attempt_number": attempt_number,
+        "counts_against_budget": counts_against_budget,
+    }
+
+
+class _TimedOut(Exception):
+    def __init__(self, columns: list[str] | None = None, rows: list[list[Any]] | None = None) -> None:
+        self.columns = columns or []
+        self.rows = rows or []

@@ -20,7 +20,7 @@ Build a local application within the eight-hour working budget.
 
 - The database connection must enforce read-only access, limited to `customers`, `orders`, and `refunds`.
 - Limit each question to six query attempts. Count failed attempts.
-- Initial engineering settings, not supplied business rules: maximum query execution time 2 seconds, and maximum returned rows 200.
+- Initial engineering settings, not supplied business rules: maximum query execution time 2 seconds, maximum returned rows 200, and maximum serialized result size 64 KiB.
 - Report timeouts and truncation clearly.
 - The model must choose each follow-up query using previous results.
 - Support follow-up questions that depend on earlier conversation context.
@@ -36,4 +36,4 @@ Build a local application within the eight-hour working budget.
 - Keep credentials and `.venv` out of Git.
 - Do not claim a check passed unless it was actually performed.
 
-AI configuration for this exercise: `ai-workflow/manifest.json`, `ai-workflow/README.md`, and `ai-workflow/prompts/001-bootstrap.md`.
+AI configuration for this exercise: `ai-workflow/manifest.json`, `ai-workflow/README.md`, `ai-workflow/prompts/001-bootstrap.md`, `ai-workflow/prompts/002-sql-tool.md`, and `ai-workflow/prompts/003-sql-review.md`.

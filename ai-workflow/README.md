@@ -11,7 +11,8 @@ Confirmed for this bootstrap:
 - Cursor 3.23.23. User-reported. Not rechecked in this session.
 - Coding-model display name, user-reported and not independently confirmed: Grok 4.7 High. This is not a verified API model ID. Reasoning: High, selected by the user.
 - Python 3.12.14, using the existing `.venv`. User-reported. The interpreter path was not recorded in this session.
-- Planning-model display name, user-reported and not independently confirmed: ChatGPT-6.1 Sol High. This is not a verified API model ID. It assisted with interpreting the assignment, planning, terminal setup instructions, and inspecting the seed records.
+- Planning-model display name, user-reported and not independently confirmed: ChatGPT-6.1 Sol High. This is not a verified API model ID. `docs/work-log.md` records the assistance as ChatGPT and does not contain an API model ID.
+- pytest 9.1.1, installed into `.venv` and pinned in `requirements-dev.txt` from `pip show`.
 
 Unavailable, and not recorded as defaults:
 
@@ -29,6 +30,11 @@ The user may switch the coding model later for cost. That has not happened. When
 | --- | --- | --- |
 | Project instructions | `AGENTS.md` | used, uncommitted |
 | Bootstrap instruction | `ai-workflow/prompts/001-bootstrap.md` | used, uncommitted |
+| Query-tool instruction | `ai-workflow/prompts/002-sql-tool.md` | used, uncommitted |
+| Review-fix instruction | `ai-workflow/prompts/003-sql-review.md` | used, uncommitted |
+| Workflow example | `ai-workflow/workflow-example.md` | used, uncommitted |
+| Pre-review query tool | `ai-workflow/snapshots/query-tool-before-review.py.txt` | preserved before the fix |
+| pytest pin | `requirements-dev.txt` | pytest 9.1.1 |
 | This record | `ai-workflow/manifest.json`, `ai-workflow/README.md` | used, uncommitted |
 | Original templates | `ai-workflow/manifest.template.json`, `ai-workflow/README.template.md` | preserved, commit `28ff74bbff53dc4d463a0434c40a78d9d0691d27` |
 | Environment name placeholder | `ai-workflow/.env.example` | supplied placeholder only; application names pending |
@@ -38,11 +44,11 @@ No project skills, subagents, hooks, or hook scripts exist. No Cursor MCP config
 
 Restore by keeping `AGENTS.md` at the repository root and the files in `ai-workflow/` at these paths. Do not put API keys, tokens, or credentials in the repo. `.gitignore` already excludes `.env` and `.venv`.
 
-A direct read of `docs/work-log.md` from disk during this review returned 0 bytes. The project-setup entry and the seed-verification entry are not in the saved file.
+`docs/work-log.md` contains the October 6 project-setup and seed-inspection entry. Active time is not entered.
 
 ## One workflow example
 
-Pending. No correction or improvement cycle has been completed, so no example is recorded. The bootstrap instruction itself is saved at `prompts/001-bootstrap.md`.
+`workflow-example.md` records the query-tool review. Four regression tests failed on the preserved module, including a 70,026-byte empty result and a 5.201619915664196 second lock wait. After the fix, `.venv/bin/python -m pytest` reported 14 passed in 2.08s.
 
 ## Reproduce or replay
 
@@ -54,6 +60,6 @@ Known tools when implementation starts: Cursor 3.23.23, the coding model recorde
 
 The user-reported coding-model display name is Grok 4.7 High, with reasoning set to High. ChatGPT, under the user-reported display name ChatGPT-6.1 Sol High, was used only before application code, for planning and seed inspection. Neither display name was independently confirmed, and neither is a verified API model ID. No skills, subagents, or hooks were added.
 
-Initial query limits are engineering settings, not supplied business rules: 2 seconds maximum execution time and 200 rows maximum. Timeouts and truncation must be reported. `AGENTS.md` requires the database connection to enforce read-only access limited to `customers`, `orders`, and `refunds`.
+Initial query limits are engineering settings, not supplied business rules: 2 seconds maximum execution time, 200 rows maximum, and 64 KiB maximum serialized result size. Timeouts and truncation must be reported. `AGENTS.md` requires the database connection to enforce read-only access limited to `customers`, `orders`, and `refunds`. The query tool is `investigator/query_tool.py`. Model integration, API, and UI are not implemented.
 
-Still open: application provider, API model ID, and parameters; the five reference cases; a replay command; and a real workflow example.
+Still open: application provider, API model ID, and parameters; the five reference cases; and a replay command.
