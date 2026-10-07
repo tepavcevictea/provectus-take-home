@@ -64,4 +64,34 @@
   prompt snapshots were not rewritten. No live call was made.
 - Active time: not yet entered.
 
+## Demo dataset, October 6
+- scripts/generate_demo_data.py starts from data/seed.json and writes
+  data/demo.json, data/demo.sqlite, and data/reference-cases.json.
+  Expectations are Python sums over the demo records. The application
+  was not used as the answer key. No live call was made.
+- Validation passed: unique IDs, foreign keys, nonnegative integer cents,
+  YYYY-MM-DD dates, and refund totals within each order amount.
+  demo.sqlite integrity_check returned ok and foreign_key_check returned
+  no rows. Seed file hashes were unchanged. The default database remains
+  data/seed.sqlite.
+- Demo size: 10 customers, 30 orders, 8 refunds.
+  August gross/refunds/net: 28200/1600/26600 cents.
+  September: 28200/4300/23900 cents. Net change: -2700 cents.
+- Checked: .venv/bin/python -m pytest — 38 passed in 2.79s.
+- Active time: not yet entered.
+
+## Period comparison and database continuity, October 6
+- The investigation prompt now says to compare both periods, name the
+  orders and refunds that account for a change, and reconcile that
+  difference separately from unknown customer motives. No demo figures
+  or SQL were added. Saved prompt snapshots were not rewritten.
+- New reports store the database's repository-relative path and SHA-256.
+  A follow-up inherits that database when --database is omitted and
+  stops if the hash changed or a different database is supplied. Older
+  reports without a database record require --database and were not
+  modified.
+- Checked: .venv/bin/python -m pytest — 45 passed in 3.00s.
+  No live model call was made.
+- Active time: not yet entered.
+
 Active time so far: 2.5 hours, including planning.

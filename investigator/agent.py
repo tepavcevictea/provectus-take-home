@@ -18,6 +18,7 @@ from investigator.prompting import (
     load_schema_text,
     sql_tool,
 )
+from investigator.database import REPO_ROOT, database_record, resolve_follow_up_database
 from investigator.query_tool import SEED_DATABASE_PATH, QueryTool
 from investigator.reports import ReportStore
 
@@ -49,8 +50,10 @@ class InvestigationAgent:
         client: Any | None = None,
         query_tool: QueryTool | None = None,
         response_source: str = "live",
+        repo_root: Path | str = REPO_ROOT,
     ) -> None:
         self.reports = ReportStore(reports_dir)
+        self.repo_root = Path(repo_root)
         self.database_path = Path(database_path)
         self.client = client
         self.query_tool = query_tool or QueryTool(self.database_path)
@@ -63,9 +66,25 @@ class InvestigationAgent:
     def investigate(self, question: str) -> dict[str, Any]:
         return self._run(question, parent=None)
 
-    def follow_up(self, parent_investigation_id: str, question: str) -> dict[str, Any]:
+    def follow_up(
+        self,
+        parent_investigation_id: str,
+        question: str,
+        *,
+        database_path: Path | str | None = None,
+    ) -> dict[str, Any]:
         parent = self.reports.load(parent_investigation_id)
-        return self._run(question, parent=parent)
+        chosen = resolve_follow_up_database(parent, database_path, self.repo_root)
+        previous_path = self.database_path
+        previous_tool = self.query_tool
+        if chosen.resolve() != Path(previous_path).resolve():
+            self.database_path = chosen
+            self.query_tool = QueryTool(chosen)
+        try:
+            return self._run(question, parent=parent)
+        finally:
+            self.database_path = previous_path
+            self.query_tool = previous_tool
 
     def _run(self, question: str, parent: dict[str, Any] | None) -> dict[str, Any]:
         investigation_id = "inv_" + uuid.uuid4().hex
@@ -95,6 +114,7 @@ class InvestigationAgent:
             "amount_units": "integer USD cents; USD equals cents divided by 100",
             "date_ranges": "UTC, start included and end excluded",
             "refund_reasons": "unknown; the records contain amounts and dates only",
+            "database": database_record(self.database_path, self.repo_root),
         }
         self._save(report)
         if not isinstance(question, str) or not question.strip():

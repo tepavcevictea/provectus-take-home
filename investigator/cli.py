@@ -19,6 +19,7 @@ import os
 import sys
 from pathlib import Path
 
+from investigator.database import REPO_ROOT, DatabaseContinuityError, resolve_follow_up_database
 from investigator.query_tool import SEED_DATABASE_PATH
 from investigator.reports import ReportPathError, ReportStore
 
@@ -35,8 +36,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "investigate":
             return _investigate(args.question, Path(args.reports_dir), Path(args.database))
         if args.command == "follow-up":
-            return _follow_up(args.investigation_id, args.question, Path(args.reports_dir), Path(args.database))
-    except ReportPathError as exc:
+            supplied = None if args.database is None else Path(args.database)
+            return _follow_up(args.investigation_id, args.question, Path(args.reports_dir), supplied)
+    except (ReportPathError, DatabaseContinuityError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     print("error: unknown command", file=sys.stderr)
@@ -52,22 +54,38 @@ def _investigate(question: str, reports_dir: Path, database: Path) -> int:
     except CredentialError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    report = InvestigationAgent(reports_dir=reports_dir, database_path=database, client=client).investigate(question)
+    report = InvestigationAgent(
+        reports_dir=reports_dir,
+        database_path=database,
+        client=client,
+        repo_root=REPO_ROOT,
+    ).investigate(question)
     _print_report(report)
     return 0 if report["status"] == "complete" else 1
 
 
-def _follow_up(investigation_id: str, question: str, reports_dir: Path, database: Path) -> int:
+def _follow_up(investigation_id: str, question: str, reports_dir: Path, database: Path | None) -> int:
     from investigator.agent import CredentialError, InvestigationAgent, build_client
 
+    try:
+        parent = ReportStore(reports_dir).load(investigation_id)
+        chosen = resolve_follow_up_database(parent, database, REPO_ROOT)
+    except DatabaseContinuityError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     load_local_env()
     try:
         client = build_client()
     except CredentialError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    agent = InvestigationAgent(reports_dir=reports_dir, database_path=database, client=client)
-    report = agent.follow_up(investigation_id, question)
+    agent = InvestigationAgent(
+        reports_dir=reports_dir,
+        database_path=chosen,
+        client=client,
+        repo_root=REPO_ROOT,
+    )
+    report = agent.follow_up(investigation_id, question, database_path=database)
     _print_report(report)
     return 0 if report["status"] == "complete" else 1
 
@@ -107,6 +125,10 @@ def _replay(investigation_id: str, reports_dir: Path) -> int:
     print("This is the saved response and was not regenerated.")
     print(f"response_source: {report['response_source']}")
     print(f"question: {report.get('question') or ''}")
+    recorded_database = report.get("database") or {}
+    if recorded_database.get("path"):
+        print(f"database: {recorded_database['path']}")
+        print(f"database_sha256: {recorded_database.get('sha256')}")
     print(f"status: {report['status']}")
     if report.get("incomplete_reason"):
         print(f"incomplete_reason: {report['incomplete_reason']}")
@@ -171,7 +193,15 @@ def _parser() -> argparse.ArgumentParser:
     follow_up.add_argument("investigation_id")
     follow_up.add_argument("question")
     follow_up.add_argument("--reports-dir", default=str(DEFAULT_REPORTS_DIR))
-    follow_up.add_argument("--database", default=str(SEED_DATABASE_PATH))
+    follow_up.add_argument(
+        "--database",
+        default=None,
+        help=(
+            "Database file for this follow-up. Omit it to inherit the parent investigation's "
+            "recorded database. Required when that report has no recorded database. "
+            "A different database is rejected."
+        ),
+    )
     replay = subparsers.add_parser(
         "replay",
         help="Show a saved investigation. Does not call the model or use a credential.",

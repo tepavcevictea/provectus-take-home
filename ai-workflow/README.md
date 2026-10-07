@@ -34,6 +34,8 @@ The user may switch the coding model later for cost. That has not happened. When
 | Query-tool instruction | `ai-workflow/prompts/002-sql-tool.md` | used, uncommitted |
 | Review-fix instruction | `ai-workflow/prompts/003-sql-review.md` | used, uncommitted |
 | Agent instruction | `ai-workflow/prompts/004-agent-loop.md` | used, uncommitted |
+| Demo-data instruction | `ai-workflow/prompts/005-generate-demo-data.md` | used, uncommitted |
+| Demo-data method | `ai-workflow/demo-data.md` | used, uncommitted |
 | Application prompt | `investigator/prompts/investigation.md` | used, uncommitted |
 | Workflow example | `ai-workflow/workflow-example.md` | used, uncommitted |
 | Pre-review query tool | `ai-workflow/snapshots/query-tool-before-review.py.txt` | preserved before the fix |
@@ -70,4 +72,4 @@ The user-reported coding-model display name is Grok 4.7 High, with reasoning set
 
 Initial query limits are engineering settings, not supplied business rules: 2 seconds maximum execution time, 200 rows maximum, and 64 KiB maximum serialized result size. Timeouts and truncation must be reported. `AGENTS.md` requires the database connection to enforce read-only access limited to `customers`, `orders`, and `refunds`. The query tool is `investigator/query_tool.py`. The investigation agent is `investigator/agent.py`. The HTTP API and UI are not implemented.
 
-A later review kept SQL errors, timeouts, and truncation incomplete, scoped evidence IDs to the investigation, and limited `.env` loading to live CLI commands. Replay stays offline. The first live call failed on `input[1].async_` and that report was kept. SDK responses are serialized with API field aliases, and unset optional fields are omitted. Still open: the five reference cases. Free-text explanations are not deterministically verified.
+A later review kept SQL errors, timeouts, and truncation incomplete, scoped evidence IDs to the investigation, and limited `.env` loading to live CLI commands. Replay stays offline. The first live call failed on `input[1].async_` and that report was kept. SDK responses are serialized with API field aliases, and unset optional fields are omitted. New reports record the database path and SHA-256. Follow-ups inherit that database unless an explicit different database is rejected. Older reports without that record are left unchanged and require `--database`. The investigation prompt now asks for both periods, and for the orders and refunds behind a change, without demo answers or SQL. Still open: the five reference cases. Free-text explanations are not deterministically verified.

@@ -49,11 +49,13 @@
         "ai-workflow/prompts/002-sql-tool.md",
         "ai-workflow/prompts/003-sql-review.md",
         "ai-workflow/prompts/004-agent-loop.md",
+        "ai-workflow/prompts/005-generate-demo-data.md",
+        "ai-workflow/demo-data.md",
         "investigator/prompts/investigation.md",
         "ai-workflow/workflow-example.md",
         "ai-workflow/snapshots/query-tool-before-review.py.txt"
       ],
-      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. 004-agent-loop.md is the saved agent instruction. investigator/prompts/investigation.md is the application prompt sent to the model. workflow-example.md records the query-tool review correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
+      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. 004-agent-loop.md is the saved agent instruction. 005-generate-demo-data.md is the saved demo-data instruction. ai-workflow/demo-data.md records how the demo fixture was generated and checked. investigator/prompts/investigation.md is the application prompt sent to the model. workflow-example.md records the query-tool review correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
     },
     "tool_and_mcp_settings": {
       "status": "used",
@@ -258,6 +260,28 @@
       "saved_path": "investigator/prompts/investigation.md",
       "version_or_commit": "uncommitted",
       "used_during": "2026-10-06 agent loop",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Demo data instruction",
+      "category": "prompts_and_rules",
+      "purpose": "Saved instruction for the expanded fictional dataset.",
+      "original_path_or_scope": "Cursor chat on 2026-10-06",
+      "saved_path": "ai-workflow/prompts/005-generate-demo-data.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 demo data",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Demo data method",
+      "category": "prompts_and_rules",
+      "purpose": "How the demo rows were added and how the five reference cases were calculated.",
+      "original_path_or_scope": "data/seed.json and data/domain.md",
+      "saved_path": "ai-workflow/demo-data.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-06 demo data",
       "status": "used",
       "redactions": []
     },

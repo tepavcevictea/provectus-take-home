@@ -48,6 +48,11 @@ def test_prompt_has_business_rules_and_not_the_seed_answer_key() -> None:
     assert "Calculate net_sales_cents in SQL" in text
     assert "refunds but no orders" in text
     assert "refund reasons are unknown from these records" in text
+    assert "compare both periods" in text
+    assert "orders and refunds from both periods" in text
+    assert "Reconcile the numerical difference" in text
+    assert "customer motive" in text
+    assert "28200" not in text
     tool = sql_tool()
     assert tool["strict"] is True
     assert set(tool["parameters"]["properties"]) == {"purpose", "sql"}

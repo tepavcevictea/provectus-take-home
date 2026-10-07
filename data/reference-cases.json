@@ -1,0 +1,406 @@
+{
+  "dataset": "data/demo.json",
+  "scope": "expanded demo, not the original seed",
+  "method": "Python sums over data/demo.json. Orders contribute by order_date and refunds by refund_date. Each refund uses the segment of the customer on its original order. Net sales are gross sales minus refunds. These figures were not taken from the application or from model-written SQL.",
+  "date_comparison": "datetime.date half-open ranges; YYYY-MM-DD text sorts in the same order.",
+  "cases": [
+    {
+      "id": "august-september-totals",
+      "title": "Expanded August and September gross, refunds, and net totals",
+      "rule": "data/domain.md rules 2 and 3",
+      "calculation": "Sum order amount_cents where order_date is in the half-open month. Sum refund amount_cents where refund_date is in that same month. Net sales equal the first sum minus the second. August and September gross sales are equal, September refunds are higher, and net sales fall.",
+      "august": {
+        "start": "2026-08-01",
+        "end_exclusive": "2026-09-01",
+        "gross_sales_cents": 28200,
+        "refunds_cents": 1600,
+        "net_sales_cents": 26600,
+        "order_ids": [
+          "O1",
+          "O2",
+          "O5",
+          "O8",
+          "O9",
+          "O13",
+          "O14",
+          "O15",
+          "O16",
+          "O17",
+          "O18",
+          "O19",
+          "O20",
+          "O21"
+        ],
+        "refund_ids": [
+          "RF1",
+          "RF6",
+          "RF8"
+        ]
+      },
+      "september": {
+        "start": "2026-09-01",
+        "end_exclusive": "2026-10-01",
+        "gross_sales_cents": 28200,
+        "refunds_cents": 4300,
+        "net_sales_cents": 23900,
+        "order_ids": [
+          "O3",
+          "O4",
+          "O6",
+          "O12",
+          "O22",
+          "O23",
+          "O24",
+          "O25",
+          "O26",
+          "O27",
+          "O28",
+          "O29",
+          "O30"
+        ],
+        "refund_ids": [
+          "RF2",
+          "RF3",
+          "RF4",
+          "RF5"
+        ]
+      },
+      "gross_change_cents": 0,
+      "refund_change_cents": 2700,
+      "net_change_cents": -2700
+    },
+    {
+      "id": "multiple-refunds-without-duplicated-gross",
+      "title": "Multiple refunds without duplicated gross sales",
+      "rule": "data/domain.md rules 1 and 3",
+      "calculation": "O3 is one September order. RF2 and RF3 are separate September refunds for that same order. Gross sales include O3's amount once. Adding the order amount once for every refund row would repeat it.",
+      "order": {
+        "order_id": "O3",
+        "customer_id": "C1",
+        "segment": "small",
+        "order_date": "2026-09-05",
+        "amount_cents": 5000
+      },
+      "refunds": [
+        {
+          "refund_id": "RF2",
+          "refund_date": "2026-09-20",
+          "amount_cents": 2000
+        },
+        {
+          "refund_id": "RF3",
+          "refund_date": "2026-09-21",
+          "amount_cents": 1000
+        }
+      ],
+      "expected": {
+        "order_counted_once_cents": 5000,
+        "refund_total_cents": 3000,
+        "september_gross_sales_cents": 28200
+      },
+      "not_the_expected_result": {
+        "description": "O3's amount added once per September refund row.",
+        "repeated_o3_amount_cents": 10000
+      }
+    },
+    {
+      "id": "segment-totals-reconcile",
+      "title": "Segment totals reconcile with overall totals",
+      "rule": "data/domain.md rules 2, 3, and 4",
+      "calculation": "For each month, group orders by order_date and the customer segment, and group refunds by refund_date and the segment on the original order. The small, large, and medium rows sum to the month totals.",
+      "august": {
+        "overall": {
+          "start": "2026-08-01",
+          "end_exclusive": "2026-09-01",
+          "gross_sales_cents": 28200,
+          "refunds_cents": 1600,
+          "net_sales_cents": 26600,
+          "order_ids": [
+            "O1",
+            "O2",
+            "O5",
+            "O8",
+            "O9",
+            "O13",
+            "O14",
+            "O15",
+            "O16",
+            "O17",
+            "O18",
+            "O19",
+            "O20",
+            "O21"
+          ],
+          "refund_ids": [
+            "RF1",
+            "RF6",
+            "RF8"
+          ]
+        },
+        "segments": {
+          "large": {
+            "gross_sales_cents": 13200,
+            "refunds_cents": 0,
+            "net_sales_cents": 13200,
+            "order_ids": [
+              "O2",
+              "O17",
+              "O18",
+              "O19",
+              "O20",
+              "O21"
+            ],
+            "refund_ids": []
+          },
+          "medium": {
+            "gross_sales_cents": 5000,
+            "refunds_cents": 400,
+            "net_sales_cents": 4600,
+            "order_ids": [
+              "O8",
+              "O9"
+            ],
+            "refund_ids": [
+              "RF8"
+            ]
+          },
+          "small": {
+            "gross_sales_cents": 10000,
+            "refunds_cents": 1200,
+            "net_sales_cents": 8800,
+            "order_ids": [
+              "O1",
+              "O5",
+              "O13",
+              "O14",
+              "O15",
+              "O16"
+            ],
+            "refund_ids": [
+              "RF1",
+              "RF6"
+            ]
+          }
+        }
+      },
+      "september": {
+        "overall": {
+          "start": "2026-09-01",
+          "end_exclusive": "2026-10-01",
+          "gross_sales_cents": 28200,
+          "refunds_cents": 4300,
+          "net_sales_cents": 23900,
+          "order_ids": [
+            "O3",
+            "O4",
+            "O6",
+            "O12",
+            "O22",
+            "O23",
+            "O24",
+            "O25",
+            "O26",
+            "O27",
+            "O28",
+            "O29",
+            "O30"
+          ],
+          "refund_ids": [
+            "RF2",
+            "RF3",
+            "RF4",
+            "RF5"
+          ]
+        },
+        "segments": {
+          "large": {
+            "gross_sales_cents": 15700,
+            "refunds_cents": 500,
+            "net_sales_cents": 15200,
+            "order_ids": [
+              "O4",
+              "O6",
+              "O26",
+              "O27",
+              "O28",
+              "O29",
+              "O30"
+            ],
+            "refund_ids": [
+              "RF5"
+            ]
+          },
+          "medium": {
+            "gross_sales_cents": 0,
+            "refunds_cents": 800,
+            "net_sales_cents": -800,
+            "order_ids": [],
+            "refund_ids": [
+              "RF4"
+            ]
+          },
+          "small": {
+            "gross_sales_cents": 12500,
+            "refunds_cents": 3000,
+            "net_sales_cents": 9500,
+            "order_ids": [
+              "O3",
+              "O12",
+              "O22",
+              "O23",
+              "O24",
+              "O25"
+            ],
+            "refund_ids": [
+              "RF2",
+              "RF3"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "refund-only-segment-period",
+      "title": "A refund-only segment and period remains visible",
+      "rule": "data/domain.md rules 2 and 4",
+      "calculation": "Medium customers have no order_date in September. RF4 refunds O8, an August medium order, on a September refund_date. September medium gross sales are zero and the refund remains in the September medium total.",
+      "segment": "medium",
+      "period": {
+        "start": "2026-09-01",
+        "end_exclusive": "2026-10-01"
+      },
+      "medium_customer_ids": [
+        "C3",
+        "C9"
+      ],
+      "september_medium_order_ids": [],
+      "refund": {
+        "refund_id": "RF4",
+        "order_id": "O8",
+        "refund_date": "2026-09-12",
+        "amount_cents": 800
+      },
+      "original_order": {
+        "order_id": "O8",
+        "customer_id": "C3",
+        "order_date": "2026-08-18",
+        "amount_cents": 3000
+      },
+      "expected": {
+        "gross_sales_cents": 0,
+        "refunds_cents": 800,
+        "net_sales_cents": -800
+      }
+    },
+    {
+      "id": "half-open-boundaries-and-refund-date",
+      "title": "Half-open date boundaries and refund-date attribution",
+      "rule": "data/domain.md rule 2",
+      "calculation": "A date is inside a month when it is greater than or equal to the first day and less than the first day of the next month. Refund amounts follow refund_date, not order_date.",
+      "records": [
+        {
+          "record_id": "O5",
+          "kind": "order",
+          "date": "2026-08-01",
+          "amount_cents": 1500,
+          "august": true,
+          "september": false,
+          "rationale": "2026-08-01 is the August start and is included in August."
+        },
+        {
+          "record_id": "O6",
+          "kind": "order",
+          "date": "2026-09-01",
+          "amount_cents": 2500,
+          "august": false,
+          "september": true,
+          "rationale": "2026-09-01 is the September start. It is included in September and excluded from August."
+        },
+        {
+          "record_id": "O7",
+          "kind": "order",
+          "date": "2026-10-01",
+          "amount_cents": 4000,
+          "august": false,
+          "september": false,
+          "rationale": "2026-10-01 is the October start. It is excluded from September."
+        },
+        {
+          "record_id": "O10",
+          "kind": "order",
+          "date": "2026-07-20",
+          "amount_cents": 1000,
+          "august": false,
+          "september": false,
+          "rationale": "2026-07-20 is before August, so it is outside both months."
+        },
+        {
+          "record_id": "O21",
+          "kind": "order",
+          "date": "2026-08-31",
+          "amount_cents": 2100,
+          "august": true,
+          "september": false,
+          "rationale": "2026-08-31 is the last August day and is included in August."
+        },
+        {
+          "record_id": "O30",
+          "kind": "order",
+          "date": "2026-09-30",
+          "amount_cents": 2100,
+          "august": false,
+          "september": true,
+          "rationale": "2026-09-30 is the last September day and is included in September."
+        },
+        {
+          "record_id": "RF5",
+          "kind": "refund",
+          "date": "2026-09-01",
+          "amount_cents": 500,
+          "order_id": "O2",
+          "order_date": "2026-08-10",
+          "segment": "large",
+          "august": false,
+          "september": true,
+          "rationale": "Refund date 2026-09-01 counts in September. Order O2 is dated 2026-08-10, so the order itself counts in August."
+        },
+        {
+          "record_id": "RF6",
+          "kind": "refund",
+          "date": "2026-08-01",
+          "amount_cents": 200,
+          "order_id": "O5",
+          "order_date": "2026-08-01",
+          "segment": "small",
+          "august": true,
+          "september": false,
+          "rationale": "Refund date 2026-08-01 is included in August."
+        },
+        {
+          "record_id": "RF7",
+          "kind": "refund",
+          "date": "2026-10-01",
+          "amount_cents": 400,
+          "order_id": "O30",
+          "order_date": "2026-09-30",
+          "segment": "large",
+          "august": false,
+          "september": false,
+          "rationale": "Refund date 2026-10-01 is excluded from September. Order O30 is dated 2026-09-30 and still counts in September."
+        },
+        {
+          "record_id": "RF8",
+          "kind": "refund",
+          "date": "2026-08-31",
+          "amount_cents": 400,
+          "order_id": "O9",
+          "order_date": "2026-08-28",
+          "segment": "medium",
+          "august": true,
+          "september": false,
+          "rationale": "Refund date 2026-08-31 is included in August and excluded from September."
+        }
+      ]
+    }
+  ]
+}

@@ -23,6 +23,7 @@ These rules are the source of truth:
 - When a question needs gross sales, refunds, or net sales, ask SQL for columns named gross_sales_cents, refunds_cents, and net_sales_cents. Calculate net_sales_cents in SQL as gross sales minus refunds. Do not leave that subtraction only to the written explanation.
 - Aggregate orders and refunds separately, then combine those totals. Keep every period or segment key that appears on either side. A period or segment with refunds but no orders in that period still belongs in the result: gross sales are zero, refunds are that refund total, and net sales are gross minus refunds.
 - The final explanation must state that refund reasons are unknown from these records. Report the numerical refund contribution separately from why a customer requested a refund.
+- When a question asks how a figure changed between periods, compare both periods. When it asks which records account for the change, identify the relevant orders and refunds from both periods. Reconcile the numerical difference with those records. The observed change is the difference in amounts and dates. It is not a customer motive.
 - If a query fails, is truncated, times out, or an attempt budget is exhausted, say what is incomplete. Do not fill the gap.
 - The database allows one read-only statement at a time against customers, orders, and refunds only.
 
