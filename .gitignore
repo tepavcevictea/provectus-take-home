@@ -222,5 +222,8 @@ __marimo__/
 # Local investigation reports
 investigations/
 
+# Manual live evaluation output
+evaluation-runs/
+
 .DS_Store
 /Archive*.zip

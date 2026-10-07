@@ -17,7 +17,10 @@ from investigator.agent import (
     MAX_REQUEST_BYTES,
     MODEL_NAME,
     InvestigationAgent,
+    _model_settings,
+    _request_body,
     build_client,
+    sampling_parameters,
 )
 from investigator.prompting import PROMPT_PATH, sql_tool
 from investigator.query_tool import MAX_ATTEMPTS, QueryTool
@@ -57,6 +60,73 @@ def test_prompt_has_business_rules_and_not_the_seed_answer_key() -> None:
     assert tool["strict"] is True
     assert set(tool["parameters"]["properties"]) == {"purpose", "sql"}
     assert "question_id" not in tool["parameters"]["properties"]
+
+
+def test_explicit_model_is_sent_and_the_default_name_stays(tmp_path: Path) -> None:
+    assert MODEL_NAME == "gpt-4.1-2025-04-14"
+    count_customers = "SELECT COUNT(*) AS customer_count FROM customers"
+    count_orders = "SELECT COUNT(*) AS order_count FROM orders"
+    scripted = Scripted(
+        [
+            response([tool_call("c1", "Count customers", count_customers)]),
+            response([tool_call("c2", "Count orders after the customer evidence", count_orders)]),
+            response([message("Both counts were queried.")]),
+        ]
+    )
+    report = _agent(tmp_path, scripted, model="gpt-6-luna").investigate("Count customers and orders.")
+    assert scripted.calls[0]["model"] == "gpt-6-luna"
+    assert "temperature" not in scripted.calls[0]
+    assert report["model_settings"]["model"] == "gpt-6-luna"
+    assert "temperature" not in report["model_settings"]
+    default = _agent(tmp_path, Scripted([]))
+    assert default.model == MODEL_NAME
+
+
+def test_sampling_parameters_follow_the_model_and_do_not_replace_it() -> None:
+    assert sampling_parameters(MODEL_NAME) == {"temperature": 0}
+    assert sampling_parameters("gpt-4.1-mini-2025-04-14") == {"temperature": 0}
+    assert sampling_parameters("gpt-6-luna") == {}
+    default = _request_body("instructions", [], [], MODEL_NAME)
+    mini = _request_body("instructions", [], [], "gpt-4.1-mini-2025-04-14")
+    luna = _request_body("instructions", [], [], "gpt-6-luna")
+    assert default["model"] == "gpt-4.1-2025-04-14"
+    assert default["temperature"] == 0
+    assert mini["model"] == "gpt-4.1-mini-2025-04-14"
+    assert mini["temperature"] == 0
+    assert luna["model"] == "gpt-6-luna"
+    assert "temperature" not in luna
+    assert default["instructions"] == mini["instructions"] == luna["instructions"]
+    assert default["tools"] == mini["tools"] == luna["tools"]
+    assert default["max_output_tokens"] == mini["max_output_tokens"] == 1500
+    assert _model_settings(MODEL_NAME)["temperature"] == 0
+    assert _model_settings(MODEL_NAME)["model"] == MODEL_NAME
+    assert _model_settings("gpt-4.1-mini-2025-04-14")["temperature"] == 0
+    recorded = _model_settings("gpt-6-luna")
+    assert recorded["model"] == "gpt-6-luna"
+    assert "temperature" not in recorded
+
+
+def test_prompt_states_refund_attribution_and_forbids_schema_discovery() -> None:
+    text = PROMPT_PATH.read_text()
+    assert "orders.order_date" in text
+    assert "refunds.refund_date" in text
+    assert "original order" in text
+    assert "zero orders" in text
+    assert "joining refunds to orders" in text
+    assert "Aggregate orders and refunds independently" in text
+    assert "PRAGMA" in text
+    assert "sqlite_master" in text
+    assert "sqlite_schema" in text
+    assert "order_totals" in text
+    assert "refund_totals" in text
+    assert "refund id" in text
+    assert "refund amount" in text
+    assert "refund date" in text
+    assert "original order id" in text
+    assert "original order date" in text
+    assert "RF4" not in text
+    assert "O8" not in text
+    assert "800" not in text
 
 
 def test_initial_query_result_and_follow_up_loop(tmp_path: Path) -> None:
@@ -310,7 +380,13 @@ def test_client_uses_the_required_timeout_and_does_not_read_a_file(monkeypatch: 
     assert captured["max_retries"] == 0
 
 
-def _agent(tmp_path: Path, scripted: Scripted, *, timeout_seconds: float | None = None) -> InvestigationAgent:
+def _agent(
+    tmp_path: Path,
+    scripted: Scripted,
+    *,
+    timeout_seconds: float | None = None,
+    model: str | None = None,
+) -> InvestigationAgent:
     database = tmp_path / f"agent-{uuid4().hex}.sqlite"
     with sqlite3.connect(database) as connection:
         connection.executescript(SCHEMA_SQL.read_text())
@@ -322,6 +398,7 @@ def _agent(tmp_path: Path, scripted: Scripted, *, timeout_seconds: float | None 
         client=SimpleNamespace(responses=scripted),
         query_tool=query_tool,
         response_source="mock",
+        model=model,
     )
 
 

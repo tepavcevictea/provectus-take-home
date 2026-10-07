@@ -94,4 +94,86 @@
   No live model call was made.
 - Active time: not yet entered.
 
+## Local API and investigation page, October 7
+- Added a FastAPI application and a plain page served by the same
+  process. Startup is `.venv/bin/python -m investigator.web`, bound to
+  127.0.0.1 with one worker. Each live request builds a new agent.
+  Dataset choices are seed and demo only. Saved-report list, load, and
+  download do not use a credential or call the model.
+- Pinned fastapi 0.142.2, starlette 1.7.0, uvicorn 0.54.0, and their
+  new installed dependencies. Existing OpenAI pins and model settings
+  were not changed. No live model call was made. Existing saved reports
+  were not modified.
+- Checked: .venv/bin/python -m pytest — 55 passed in 3.50s.
+- Active time: not yet entered.
+
+## System evaluation, October 7
+- Added 14 scripted system cases in `investigator/evaluation.py`.
+  Expected business figures come from `data/reference-cases.json`, and the
+  empty-period and absent-segment cases use a separate sum over
+  `data/demo.json`. The optional live command is
+  `python -m investigator.evaluate --live`. It was not run. Existing
+  saved reports were not modified.
+- Checked: .venv/bin/python -m pytest — 74 passed in 4.16s.
+  No live model call was made.
+- Active time: not yet entered.
+
+## Evaluation hardening, October 7
+- Added `evaluation/golden_cases.json` as the reviewer-readable case list.
+  It points at the reference fixture and the independent demo sum instead of
+  copying cent totals. The epistemic phrase check now fails when a caveat and
+  an affirmative cause appear together. QueryTool was not changed. The live
+  evaluator was not run.
+- Checked: .venv/bin/python -m pytest tests/test_evaluation.py — 20 passed in 0.30s.
+  .venv/bin/python -m pytest — 75 passed in 3.57s.
+  No live model call was made.
+- Active time: not yet entered.
+
+## Live model comparison, October 7
+- The live command now requires `--model` and records that id. The
+  application default remains gpt-4.1-mini-2025-04-14. Prompts and
+  QueryTool were not changed. `python -m investigator.evaluate` is the
+  command entry.
+- Before live calls: .venv/bin/python -m pytest — 77 passed in 3.64s.
+- gpt-4.1-mini-2025-04-14 passed 6 of 8 live cases. gpt-6-luna failed
+  the first case with an API error that `temperature` is unsupported,
+  so the other seven cases were not run. No unsafe SQL executed.
+  Fixture hashes were unchanged.
+- After: .venv/bin/python -m pytest — 77 passed in 3.63s.
+- Active time: not yet entered.
+
+## Instruction and request hardening, October 7
+- Requests for gpt-6-luna omit temperature. The default model still sends
+  temperature 0 and was not changed. The prompt now states independent
+  refund-date attribution, forbids schema-catalog queries, and warns against
+  CTE names that shadow customers, orders, or refunds. QueryTool and the
+  golden cases were not changed. No live model call was made. The earlier
+  evaluation-runs directories were not rewritten. A byte copy of the
+  pre-hardening comparison is in evaluation/pre-hardening/.
+- Checked: .venv/bin/python -m pytest — 79 passed in 3.76s.
+  No live model call was made.
+- Active time: not yet entered.
+
+## Post-hardening model comparison, October 7
+- Compared gpt-4.1-mini-2025-04-14 and gpt-4.1-2025-04-14 on the same
+  eight live cases, both at temperature 0. Prompts, tools, and golden
+  cases were not changed between the runs. gpt-6-luna stays an excluded
+  compatibility probe. The pre-hardening result directories were not
+  rewritten.
+- Before: .venv/bin/python -m pytest — 79 passed in 3.67s.
+- gpt-4.1-mini passed 7 of 8. gpt-4.1 passed 8 of 8. No unsafe SQL executed.
+  Demo and seed hashes were unchanged.
+- After: .venv/bin/python -m pytest — 79 passed in 3.69s.
+- Active time: not yet entered.
+
+## Default model selection, October 7
+- Set the application default to gpt-4.1-2025-04-14 because the
+  post-hardening comparison, at temperature 0 with the same prompt and
+  tools, scored 8/8 against 7/8 for gpt-4.1-mini. Mini remains an
+  explicit override. gpt-6-luna stays a compatibility probe.
+- Checked: .venv/bin/python -m pytest — 79 passed in 3.86s.
+  .venv/bin/python -m pytest tests/test_evaluation.py — 21 passed in 0.27s.
+  No live model call was made.
+- Active time: not yet entered.
+
 Active time so far: 2.5 hours, including planning.

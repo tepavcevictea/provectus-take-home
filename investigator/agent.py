@@ -22,8 +22,11 @@ from investigator.database import REPO_ROOT, database_record, resolve_follow_up_
 from investigator.query_tool import SEED_DATABASE_PATH, QueryTool
 from investigator.reports import ReportStore
 
-MODEL_NAME = "gpt-4.1-mini-2025-04-14"
+MODEL_NAME = "gpt-4.1-2025-04-14"
 TEMPERATURE = 0
+# Responses API compatibility only. These models reject the temperature parameter.
+# Instructions, tools, limits, and the requested model id stay the same.
+MODELS_WITHOUT_TEMPERATURE = frozenset({"gpt-6-luna"})
 MAX_OUTPUT_TOKENS = 1500
 STORE_RESPONSES = False
 PARALLEL_TOOL_CALLS = False
@@ -51,6 +54,7 @@ class InvestigationAgent:
         query_tool: QueryTool | None = None,
         response_source: str = "live",
         repo_root: Path | str = REPO_ROOT,
+        model: str | None = None,
     ) -> None:
         self.reports = ReportStore(reports_dir)
         self.repo_root = Path(repo_root)
@@ -60,6 +64,12 @@ class InvestigationAgent:
         if response_source not in {"live", "mock"}:
             raise ValueError("response_source must be 'live' or 'mock'.")
         self.response_source = response_source
+        if model is None:
+            self.model = MODEL_NAME
+        elif isinstance(model, str) and model.strip():
+            self.model = model
+        else:
+            raise ValueError("model must be a non-empty string. The default model was not substituted.")
         self.instructions = build_instructions()
         self.tools = [sql_tool()]
 
@@ -98,7 +108,7 @@ class InvestigationAgent:
             "assumptions": list(ASSUMPTIONS),
             "prompt_snapshot": load_prompt_text(),
             "schema_snapshot": load_schema_text(),
-            "model_settings": _model_settings(),
+            "model_settings": _model_settings(self.model),
             "model_responses": [],
             "usage": [],
             "sql_attempts": [],
@@ -151,7 +161,7 @@ class InvestigationAgent:
                         f" SQL tool execution stopped at the {self.query_tool.max_attempts}-attempt limit."
                     )
                 return self._finish(report, "incomplete", reason)
-            request = _request_body(self.instructions, self.tools, conversation)
+            request = _request_body(self.instructions, self.tools, conversation, self.model)
             size = _serialized_size(request)
             if size > MAX_REQUEST_BYTES:
                 return self._finish(
@@ -389,32 +399,54 @@ def build_client() -> Any:
     return OpenAI(api_key=key, timeout=CLIENT_TIMEOUT_SECONDS, max_retries=CLIENT_MAX_RETRIES)
 
 
-def _model_settings() -> dict[str, Any]:
-    return {
-        "model": MODEL_NAME,
-        "temperature": TEMPERATURE,
-        "max_output_tokens": MAX_OUTPUT_TOKENS,
-        "store": STORE_RESPONSES,
-        "parallel_tool_calls": PARALLEL_TOOL_CALLS,
-        "timeout_seconds": CLIENT_TIMEOUT_SECONDS,
-        "max_retries": CLIENT_MAX_RETRIES,
-        "max_model_requests": MAX_MODEL_REQUESTS,
-        "max_question_characters": MAX_QUESTION_CHARACTERS,
-        "max_request_bytes": MAX_REQUEST_BYTES,
-    }
+def sampling_parameters(model: str) -> dict[str, Any]:
+    """Sampling fields the Responses API accepts for this model.
+
+    The model id is sent unchanged. The default model and gpt-4.1-mini
+    include temperature 0. gpt-6-luna omits temperature because that model rejects it.
+    """
+    if model in MODELS_WITHOUT_TEMPERATURE:
+        return {}
+    return {"temperature": TEMPERATURE}
 
 
-def _request_body(instructions: str, tools: list[dict[str, Any]], conversation: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
-        "model": MODEL_NAME,
-        "temperature": TEMPERATURE,
-        "max_output_tokens": MAX_OUTPUT_TOKENS,
-        "store": STORE_RESPONSES,
-        "parallel_tool_calls": PARALLEL_TOOL_CALLS,
-        "instructions": instructions,
-        "tools": tools,
-        "input": conversation,
-    }
+def _model_settings(model: str = MODEL_NAME) -> dict[str, Any]:
+    settings: dict[str, Any] = {"model": model}
+    settings.update(sampling_parameters(model))
+    settings.update(
+        {
+            "max_output_tokens": MAX_OUTPUT_TOKENS,
+            "store": STORE_RESPONSES,
+            "parallel_tool_calls": PARALLEL_TOOL_CALLS,
+            "timeout_seconds": CLIENT_TIMEOUT_SECONDS,
+            "max_retries": CLIENT_MAX_RETRIES,
+            "max_model_requests": MAX_MODEL_REQUESTS,
+            "max_question_characters": MAX_QUESTION_CHARACTERS,
+            "max_request_bytes": MAX_REQUEST_BYTES,
+        }
+    )
+    return settings
+
+
+def _request_body(
+    instructions: str,
+    tools: list[dict[str, Any]],
+    conversation: list[dict[str, Any]],
+    model: str = MODEL_NAME,
+) -> dict[str, Any]:
+    body: dict[str, Any] = {"model": model}
+    body.update(sampling_parameters(model))
+    body.update(
+        {
+            "max_output_tokens": MAX_OUTPUT_TOKENS,
+            "store": STORE_RESPONSES,
+            "parallel_tool_calls": PARALLEL_TOOL_CALLS,
+            "instructions": instructions,
+            "tools": tools,
+            "input": conversation,
+        }
+    )
+    return body
 
 
 def _serialized_size(request: dict[str, Any]) -> int:

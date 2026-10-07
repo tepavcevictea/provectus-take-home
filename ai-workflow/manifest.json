@@ -19,10 +19,13 @@
       "status": "used",
       "files": [
         "investigator/agent.py",
+        "investigator/api.py",
+        "investigator/web.py",
+        "investigator/frontend/index.html",
         "investigator/prompts/investigation.md",
         "requirements.txt"
       ],
-      "notes": "Application Responses API model specified for this exercise: gpt-4.1-mini-2025-04-14. temperature 0, max_output_tokens 1500, store false, parallel_tool_calls false. Client timeout 20 seconds and max_retries 0. openai 3.24.0 and its installed dependencies are pinned in requirements.txt. No live API call was made. Tests use mocks and save response_source mock. SQL errors, timeouts, and truncation stay incomplete. Evidence IDs are investigation-scoped."
+      "notes": "The original specified Responses API model was gpt-4.1-mini-2025-04-14. After one controlled comparison, the default became gpt-4.1-2025-04-14. Both use temperature 0, max_output_tokens 1500, store false, and parallel_tool_calls false. Client timeout 20 seconds and max_retries 0. gpt-4.1-mini remains an explicit override. gpt-6-luna was probed and excluded because it rejects temperature. openai 3.24.0 and its installed dependencies stay pinned. fastapi 0.142.2, starlette 1.7.0, and uvicorn 0.54.0 were added without changing those pins. One early live investigation failed and is preserved. Tests use mocks and save response_source mock. SQL errors, timeouts, and truncation stay incomplete. Evidence IDs are investigation-scoped."
     },
     "skills": {
       "status": "not-used",
@@ -50,12 +53,13 @@
         "ai-workflow/prompts/003-sql-review.md",
         "ai-workflow/prompts/004-agent-loop.md",
         "ai-workflow/prompts/005-generate-demo-data.md",
+        "ai-workflow/prompts/006-api-page.md",
         "ai-workflow/demo-data.md",
         "investigator/prompts/investigation.md",
         "ai-workflow/workflow-example.md",
         "ai-workflow/snapshots/query-tool-before-review.py.txt"
       ],
-      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. 004-agent-loop.md is the saved agent instruction. 005-generate-demo-data.md is the saved demo-data instruction. ai-workflow/demo-data.md records how the demo fixture was generated and checked. investigator/prompts/investigation.md is the application prompt sent to the model. workflow-example.md records the query-tool review correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
+      "notes": "001-bootstrap.md is the saved bootstrap instruction. 002-sql-tool.md is the saved query-tool instruction. 003-sql-review.md is the saved review-fix instruction. 004-agent-loop.md is the saved agent instruction. 005-generate-demo-data.md is the saved demo-data instruction. 006-api-page.md is the saved API and page instruction. ai-workflow/demo-data.md records how the demo fixture was generated and checked. investigator/prompts/investigation.md is the application prompt sent to the model. workflow-example.md records the query-tool review correction. The pre-review query tool is snapshots/query-tool-before-review.py.txt. AGENTS.md is the project instruction file. data/domain.md remains the domain source of truth and is not copied here."
     },
     "tool_and_mcp_settings": {
       "status": "used",
@@ -69,7 +73,7 @@
         "ai-workflow/.env.example",
         ".gitignore"
       ],
-      "notes": "Live investigate and follow-up commands read OPENAI_API_KEY from the environment, or from the repository-root .env when the variable is unset. An existing value is not replaced. Replay does not load .env. The key value is not stored. No permission settings were exported. .gitignore excludes .env and .venv."
+      "notes": "Live investigate and follow-up commands, and live API requests, read OPENAI_API_KEY from the environment, or from the repository-root .env when the variable is unset. An existing value is not replaced. Replay does not load .env. Listing, loading, and downloading saved reports does not load .env or call the model. The key value is not stored. No permission settings were exported. .gitignore excludes .env and .venv."
     }
   },
   "configuration_records": [
@@ -231,11 +235,11 @@
     {
       "name": "Application model gpt-4.1-mini-2025-04-14",
       "category": "application_models_and_parameters",
-      "purpose": "Default Responses API model for the investigation agent. No live call was made.",
+      "purpose": "Original specified Responses API model. It remains an explicit override. The default later changed to gpt-4.1-2025-04-14.",
       "original_path_or_scope": "OpenAI Responses API",
       "saved_path": "investigator/agent.py",
       "version_or_commit": "gpt-4.1-mini-2025-04-14",
-      "used_during": "2026-10-06 agent loop, mocked tests only",
+      "used_during": "2026-10-06 agent loop, and the live comparisons on 2026-10-07",
       "status": "used",
       "redactions": [
         "OPENAI_API_KEY value is not stored."
@@ -284,6 +288,43 @@
       "used_during": "2026-10-06 demo data",
       "status": "used",
       "redactions": []
+    },
+    {
+      "name": "API and page instruction",
+      "category": "prompts_and_rules",
+      "purpose": "Saved instruction for the local API and investigation page.",
+      "original_path_or_scope": "Cursor chat on 2026-10-07",
+      "saved_path": "ai-workflow/prompts/006-api-page.md",
+      "version_or_commit": "uncommitted",
+      "used_during": "2026-10-07 local API and page",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Application default gpt-4.1-2025-04-14",
+      "category": "application_models_and_parameters",
+      "purpose": "Default Responses API model after the controlled eight-case comparison. Same prompt, tools, limits, and temperature 0 as gpt-4.1-mini. Score was 8/8 against mini 7/8. Not a claim of universal superiority.",
+      "original_path_or_scope": "OpenAI Responses API",
+      "saved_path": "investigator/agent.py",
+      "version_or_commit": "gpt-4.1-2025-04-14",
+      "used_during": "2026-10-07 model selection",
+      "status": "used",
+      "redactions": [
+        "OPENAI_API_KEY value is not stored."
+      ]
+    },
+    {
+      "name": "Local API packages",
+      "category": "application_models_and_parameters",
+      "purpose": "FastAPI application and one-worker uvicorn process for the investigation page. Model settings were not changed. No live call was made for this milestone.",
+      "original_path_or_scope": ".venv",
+      "saved_path": "requirements.txt",
+      "version_or_commit": "fastapi 0.142.2, starlette 1.7.0, uvicorn 0.54.0",
+      "used_during": "2026-10-07 local API and page",
+      "status": "used",
+      "redactions": [
+        "OPENAI_API_KEY value is not stored."
+      ]
     },
     {
       "name": "Application environment",

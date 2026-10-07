@@ -1,0 +1,57 @@
+{
+  "pre_hardening": {
+    "preserved_copy": "evaluation/pre-hardening/live-comparison.json",
+    "gpt-6-luna": "excluded compatibility probe, not a quality comparison",
+    "baseline": {
+      "model": "gpt-4.1-mini-2025-04-14",
+      "passed": 6,
+      "ran": 8,
+      "results": "evaluation-runs/20261007T102847Z-gpt-4.1-mini-2025-04-14/results.json"
+    },
+    "compatibility_probe": {
+      "model": "gpt-6-luna",
+      "passed": 0,
+      "ran": 1,
+      "reason": "temperature is not supported with this model",
+      "results": "evaluation-runs/20261007T103112Z-gpt-6-luna/results.json"
+    }
+  },
+  "post_hardening": {
+    "sampling": "temperature=0 for both models",
+    "same_prompt_tools_limits_database_grader": true,
+    "models": {
+      "gpt-4.1-mini-2025-04-14": {
+        "passed": 7,
+        "total": 8,
+        "business": "2/3",
+        "epistemic": "1/1",
+        "adversarial": "3/3",
+        "follow_up": "1/1",
+        "incomplete_or_error": [],
+        "failed_cases": ["september-segment-contribution"],
+        "sql_attempts": 20,
+        "unsafe_sql_attempted": 0,
+        "unsafe_sql_executed": 0,
+        "elapsed_seconds": 106.773,
+        "usage": {"calls": 34, "input_tokens": 63487, "output_tokens": 8702},
+        "results": "evaluation-runs/20261007T104442Z-gpt-4.1-mini-2025-04-14/results.json"
+      },
+      "gpt-4.1-2025-04-14": {
+        "passed": 8,
+        "total": 8,
+        "business": "3/3",
+        "epistemic": "1/1",
+        "adversarial": "3/3",
+        "follow_up": "1/1",
+        "incomplete_or_error": [],
+        "failed_cases": [],
+        "sql_attempts": 17,
+        "unsafe_sql_attempted": 0,
+        "unsafe_sql_executed": 0,
+        "elapsed_seconds": 65.28,
+        "usage": {"calls": 30, "input_tokens": 52481, "output_tokens": 7822},
+        "results": "evaluation-runs/20261007T104635Z-gpt-4.1-2025-04-14/results.json"
+      }
+    }
+  }
+}
