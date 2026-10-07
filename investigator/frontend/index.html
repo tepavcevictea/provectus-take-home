@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Business data investigator</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Business data investigator</h1>
+      <p>Ask a question about the local seed or demo database. Amounts from the database are integer USD cents. Date ranges are UTC, with the start included and the end excluded. Refund reasons are not in the records.</p>
+    </header>
+
+    <form id="ask">
+      <label for="question">Question</label>
+      <textarea id="question" name="question" rows="3" maxlength="2000" required></textarea>
+      <div class="dataset-field">
+        <span id="dataset-label">Dataset</span>
+        <div class="segment" role="radiogroup" aria-labelledby="dataset-label">
+          <label>
+            <input type="radio" name="dataset" value="demo" checked>
+            <span>Demo</span>
+          </label>
+          <label>
+            <input type="radio" name="dataset" value="seed">
+            <span>Seed</span>
+          </label>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" id="run" class="primary">Run investigation</button>
+        <button type="button" id="follow-up" class="secondary" disabled>Ask follow-up</button>
+      </div>
+      <p class="note">A follow-up uses the database recorded on the selected investigation. For an older report with no recorded database, it uses the dataset selected above.</p>
+      <p id="request-error" class="error" role="alert"></p>
+    </form>
+
+    <details id="result" hidden>
+      <summary>
+        <span>Investigation</span>
+        <span id="result-status" class="badge"></span>
+        <span id="result-follow-up" class="badge badge-follow" hidden>Follow-up</span>
+      </summary>
+      <p id="origin" class="banner"></p>
+      <div class="result-heading">
+        <a id="download" class="secondary" href="#">Download JSON</a>
+      </div>
+      <p id="result-question" class="question"></p>
+      <p id="result-reason" class="reason"></p>
+      <h3>Answer</h3>
+      <div class="answer-panel">
+        <p id="result-explanation"></p>
+      </div>
+      <h3>Evidence</h3>
+      <p id="units"></p>
+      <div id="evidence-summary"></div>
+      <details id="technical">
+        <summary>Technical details</summary>
+        <details class="nested">
+          <summary>Metadata</summary>
+          <dl class="meta">
+            <div>
+              <dt>ID</dt>
+              <dd id="result-id"></dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd id="result-status-detail"></dd>
+            </div>
+            <div>
+              <dt>Dataset</dt>
+              <dd id="result-dataset"></dd>
+            </div>
+            <div>
+              <dt>Database</dt>
+              <dd id="result-database"></dd>
+            </div>
+            <div>
+              <dt>SHA-256</dt>
+              <dd id="result-hash"></dd>
+            </div>
+            <div>
+              <dt>Verification</dt>
+              <dd id="result-verification"></dd>
+            </div>
+            <div>
+              <dt>Citations</dt>
+              <dd id="result-citations"></dd>
+            </div>
+          </dl>
+        </details>
+        <details class="nested">
+          <summary>Query results</summary>
+          <div id="summary"></div>
+        </details>
+        <details class="nested">
+          <summary>SQL attempts</summary>
+          <div id="attempts"></div>
+        </details>
+        <details class="nested">
+          <summary>Parent context</summary>
+          <div id="parent"></div>
+        </details>
+      </details>
+    </details>
+
+    <details id="saved-investigations" open>
+      <summary>Choose another saved investigation</summary>
+      <div id="saved-list"></div>
+      <p class="note">Opening a saved investigation does not call the model.</p>
+    </details>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

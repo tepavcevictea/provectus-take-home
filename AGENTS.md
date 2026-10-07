@@ -36,4 +36,4 @@ Build a local application within the eight-hour working budget.
 - Keep credentials and `.venv` out of Git.
 - Do not claim a check passed unless it was actually performed.
 
-AI configuration for this exercise: `ai-workflow/manifest.json`, `ai-workflow/README.md`, `ai-workflow/prompts/001-bootstrap.md`, `ai-workflow/prompts/002-sql-tool.md`, `ai-workflow/prompts/003-sql-review.md`, `ai-workflow/prompts/004-agent-loop.md`, and `ai-workflow/prompts/005-generate-demo-data.md`.
+AI configuration for this exercise: `ai-workflow/manifest.json`, `ai-workflow/README.md`, `ai-workflow/prompts/001-bootstrap.md`, `ai-workflow/prompts/002-sql-tool.md`, `ai-workflow/prompts/003-sql-review.md`, `ai-workflow/prompts/004-agent-loop.md`, `ai-workflow/prompts/005-generate-demo-data.md`, and `ai-workflow/prompts/006-api-page.md`.
