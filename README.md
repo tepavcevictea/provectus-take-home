@@ -4,6 +4,15 @@ Alternative D. A local investigator answers business questions about a SQLite fi
 
 The default model is `gpt-4.1-2025-04-14` at temperature 0. That choice comes from one controlled comparison on eight cases, described under Evaluation. It is not a claim that this model is universally better. `gpt-4.1-mini-2025-04-14` still works as an explicit model override.
 
+## Tech stack
+
+- Python 3.12
+- OpenAI Responses API
+- SQLite
+- FastAPI and Uvicorn
+- HTML, CSS, and JavaScript, with no frontend framework
+- pytest
+
 ## Quick start
 
 Python 3.12 and a virtual environment:
@@ -134,11 +143,15 @@ The optional live command calls the OpenAI API and can incur charges. It is not 
 
 Without `--live`, that command does not call the model. `--model` is required. The application default is not substituted.
 
+## AI workflow
+
+Development tools are separate from the application model. `ai-workflow/README.md` and `ai-workflow/manifest.json` record them. `docs/work-log.md` records the milestones. The coding agent ran in Cursor. ChatGPT was used for planning and for later review and evaluation design. Those later discussions were not individually exported. Saved prompt files under `ai-workflow/prompts/` are the exported instructions.
+
 ## Known limitations
 
 - Explanations are checked for citations, required figures in SQL rows, and a bounded phrase list. The prose itself is not semantically verified.
 - The golden set is 14 cases. The live subset is 8. One run is not a statistical benchmark.
 - The database is a small SQLite fixture, not a production warehouse.
 - The local server allows one live investigation at a time.
-- A few saved reports predate database-path and SHA-256 tracking. Those files were left unchanged. A follow-up on one of them needs an explicit dataset.
-- The first live investigation failed during SDK serialization and is preserved locally under `investigations/`, which is gitignored.
+- Four historical live reports are checked in under `investigations/` so they can be replayed without a credential: `inv_030848b96125484bac45bb814b259f84` (the preserved SDK serialization failure), `inv_0606d4dc1d4548cea8396c5ef6c28f7d`, `inv_698c30c7fa6c4df4bfed637220d9882a`, and its follow-up `inv_4a0be1dad9ae4bf394109e3c34b1c8e1`. They were not rewritten when later behavior changed. Some of them predate database-path and SHA-256 tracking, so a follow-up on one of those needs an explicit dataset.
+- New investigation files written at runtime under `investigations/` are gitignored. The four historical files stay tracked.

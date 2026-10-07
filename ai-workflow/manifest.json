@@ -1,6 +1,6 @@
 {
   "template": false,
-  "instructions": "Exercise record for Provectus Alternative D. The originals remain at manifest.template.json and README.template.md. No credentials. Pending means not chosen yet. not-exportable means a detail was unavailable and was not replaced with a guess.",
+  "instructions": "Exercise record for Provectus Alternative D. The starter templates were committed in 28ff74b and then removed from the working tree. Their content remains in that commit. The filled records are manifest.json and README.md. No credentials. Pending means not chosen yet. not-exportable means a detail was unavailable and was not replaced with a guess.",
   "categories": {
     "development_tools_and_models": {
       "status": "used",
@@ -8,7 +8,7 @@
         "ai-workflow/README.md",
         "docs/work-log.md"
       ],
-      "notes": "Cursor 3.23.23, user-reported and not rechecked in this session. Coding-model display name, user-reported and not independently confirmed: Grok 4.7 High. This is not a verified API model ID. Reasoning: High, selected by the user. Python 3.12.14 with an existing .venv, user-reported and not rechecked in this session. Planning assistance is recorded in docs/work-log.md as ChatGPT, without an API model ID. The display name ChatGPT-6.1 Sol High is user-reported and not independently confirmed; it is not a verified API model ID. pytest 9.1.1 is recorded in requirements-dev.txt from the version installed into .venv. Provider API model IDs, temperature, and output limits were not exported. No defaults for those parameters are known, so none are recorded. The user may switch the coding model later for cost; that change has not happened."
+      "notes": "Cursor 3.23.23, user-reported and not rechecked in this session. Coding-model display name, user-reported and not independently confirmed: Grok 4.7 High. This is not a verified API model ID. Reasoning: High, selected by the user. Python 3.12.14 with an existing .venv, user-reported and not rechecked in this session. ChatGPT, display name ChatGPT-6.1 Sol High, user-reported and not a verified API model ID, was used before application code and again during review, evaluation design, and submission review. Those later discussions were not individually exported. docs/work-log.md summarizes the decisions and does not contain an API model ID. pytest 9.1.1 is recorded in requirements-dev.txt from the version installed into .venv. Provider API model IDs, temperature, and output limits were not exported. No defaults for those parameters are known, so none are recorded. The user may switch the coding model later for cost; that change has not happened."
     },
     "plugins_and_extensions": {
       "status": "used",
@@ -28,9 +28,11 @@
       "notes": "The original specified Responses API model was gpt-4.1-mini-2025-04-14. After one controlled comparison, the default became gpt-4.1-2025-04-14. Both use temperature 0, max_output_tokens 1500, store false, and parallel_tool_calls false. Client timeout 20 seconds and max_retries 0. gpt-4.1-mini remains an explicit override. gpt-6-luna was probed and excluded because it rejects temperature. openai 3.24.0 and its installed dependencies stay pinned. fastapi 0.142.2, starlette 1.7.0, and uvicorn 0.54.0 were added without changing those pins. One early live investigation failed and is preserved. Tests use mocks and save response_source mock. SQL errors, timeouts, and truncation stay incomplete. Evidence IDs are investigation-scoped."
     },
     "skills": {
-      "status": "not-used",
-      "files": [],
-      "notes": "No project skills were created or used."
+      "status": "used-as-reference",
+      "files": [
+        "ai-workflow/reference/generate-assignment-data-SKILL.md"
+      ],
+      "notes": "The supplied generate-assignment-data skill was not installed as an active Cursor skill. The copy at ai-workflow/reference/generate-assignment-data-SKILL.md was read as a reference when the demo fixture was generated. No project skill was created."
     },
     "agent_instructions_and_subagents": {
       "status": "used",
@@ -108,16 +110,16 @@
     {
       "name": "ChatGPT-6.1 Sol High",
       "category": "development_tools_and_models",
-      "purpose": "User-reported display name for planning assistance. Not independently confirmed and not a verified API model ID. Interpreted the assignment, planned the work, gave terminal setup instructions, and inspected the seed records. Development-time only.",
-      "original_path_or_scope": "User-reported display name from bootstrap. docs/work-log.md records ChatGPT assistance and does not contain an API model ID.",
+      "purpose": "User-reported display name. Not independently confirmed and not a verified API model ID. Used before application code to interpret the assignment, plan the work, give terminal setup instructions, and inspect the seed. Also used during the project for architecture and review discussion, frontend review, evaluation and golden-set design, adversarial-testing strategy, interpreting live evaluation failures, hardening decisions, model-comparison design, and final submission review. Those later discussions were not individually exported.",
+      "original_path_or_scope": "User-reported display name. docs/work-log.md summarizes the decisions and does not contain an API model ID.",
       "saved_path": "docs/work-log.md",
       "version_or_commit": "not-exportable",
-      "used_during": "Project setup and starter-data inspection before bootstrap",
+      "used_during": "Project setup, and review through the 2026-10-07 submission",
       "status": "used",
       "redactions": [
         "Display name is user-reported and is not a verified API model ID.",
         "Provider API model ID was not exported.",
-        "Chat transcript was not copied."
+        "Later ChatGPT discussions were not individually exported."
       ]
     },
     {
@@ -148,7 +150,7 @@
       "purpose": "Project instructions for the coding agent. Also listed under prompts_and_rules.",
       "original_path_or_scope": "Repository root",
       "saved_path": "AGENTS.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "59dcc17",
       "used_during": "2026-10-06 bootstrap onward",
       "status": "used",
       "redactions": []
@@ -159,7 +161,7 @@
       "purpose": "Saved instruction for the three query-tool review fixes.",
       "original_path_or_scope": "Cursor chat on 2026-10-06",
       "saved_path": "ai-workflow/prompts/003-sql-review.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "5ed580b",
       "used_during": "2026-10-06 query tool review",
       "status": "used",
       "redactions": []
@@ -170,7 +172,7 @@
       "purpose": "Preserved copy of investigator/query_tool.py before the review fixes.",
       "original_path_or_scope": "investigator/query_tool.py",
       "saved_path": "ai-workflow/snapshots/query-tool-before-review.py.txt",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "5ed580b",
       "used_during": "2026-10-06 query tool review",
       "status": "used",
       "redactions": []
@@ -181,7 +183,7 @@
       "purpose": "Real review correction with the failing pytest output and the results after the fix.",
       "original_path_or_scope": "ai-workflow/prompts/003-sql-review.md",
       "saved_path": "ai-workflow/workflow-example.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "5ed580b",
       "used_during": "2026-10-06 query tool review",
       "status": "used",
       "redactions": []
@@ -192,7 +194,7 @@
       "purpose": "Saved instruction for the bounded read-only SQLite query tool.",
       "original_path_or_scope": "Cursor chat on 2026-10-06",
       "saved_path": "ai-workflow/prompts/002-sql-tool.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "5ed580b",
       "used_during": "2026-10-06 query tool",
       "status": "used",
       "redactions": []
@@ -203,7 +205,7 @@
       "purpose": "Saved copy of the instruction that started Alternative D documentation.",
       "original_path_or_scope": "Cursor chat on 2026-10-06",
       "saved_path": "ai-workflow/prompts/001-bootstrap.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "59dcc17",
       "used_during": "2026-10-06 bootstrap",
       "status": "used",
       "redactions": []
@@ -211,9 +213,9 @@
     {
       "name": "AI workflow templates",
       "category": "prompts_and_rules",
-      "purpose": "Original templates, preserved unchanged. Filled copies are manifest.json and README.md.",
+      "purpose": "Starter templates. The filled records are ai-workflow/manifest.json and ai-workflow/README.md. The template files were removed from the working tree. Their content remains in commit 28ff74b.",
       "original_path_or_scope": "ai-workflow/manifest.template.json and ai-workflow/README.template.md",
-      "saved_path": "ai-workflow/manifest.template.json",
+      "saved_path": "",
       "version_or_commit": "28ff74bbff53dc4d463a0434c40a78d9d0691d27",
       "used_during": "2026-10-06 bootstrap",
       "status": "used",
@@ -251,7 +253,7 @@
       "purpose": "Saved instruction for the investigation agent and CLI.",
       "original_path_or_scope": "Cursor chat on 2026-10-06",
       "saved_path": "ai-workflow/prompts/004-agent-loop.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "bc0c794",
       "used_during": "2026-10-06 agent loop",
       "status": "used",
       "redactions": []
@@ -262,7 +264,7 @@
       "purpose": "Application prompt with business definitions and investigation procedure. The seed answer key is not included.",
       "original_path_or_scope": "data/domain.md rules and data/schema.sql",
       "saved_path": "investigator/prompts/investigation.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "bc0c794",
       "used_during": "2026-10-06 agent loop",
       "status": "used",
       "redactions": []
@@ -273,9 +275,20 @@
       "purpose": "Saved instruction for the expanded fictional dataset.",
       "original_path_or_scope": "Cursor chat on 2026-10-06",
       "saved_path": "ai-workflow/prompts/005-generate-demo-data.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "4ee5a57",
       "used_during": "2026-10-06 demo data",
       "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Fixture skill reference",
+      "category": "skills",
+      "purpose": "Copy of the supplied generate-assignment-data skill. It was read as a reference while generating the demo fixture. It was not installed as an active Cursor skill, and it does not implement the application.",
+      "original_path_or_scope": "Starter-pack skills/generate-assignment-data/SKILL.md",
+      "saved_path": "ai-workflow/reference/generate-assignment-data-SKILL.md",
+      "version_or_commit": "bc0c794",
+      "used_during": "2026-10-06 demo data",
+      "status": "used-as-reference",
       "redactions": []
     },
     {
@@ -284,7 +297,7 @@
       "purpose": "How the demo rows were added and how the five reference cases were calculated.",
       "original_path_or_scope": "data/seed.json and data/domain.md",
       "saved_path": "ai-workflow/demo-data.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "4ee5a57",
       "used_during": "2026-10-06 demo data",
       "status": "used",
       "redactions": []
@@ -295,7 +308,7 @@
       "purpose": "Saved instruction for the local API and investigation page.",
       "original_path_or_scope": "Cursor chat on 2026-10-07",
       "saved_path": "ai-workflow/prompts/006-api-page.md",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "c87da4f",
       "used_during": "2026-10-07 local API and page",
       "status": "used",
       "redactions": []
@@ -332,7 +345,7 @@
       "purpose": "OPENAI_API_KEY is read from the environment at runtime. Only the variable name is recorded.",
       "original_path_or_scope": "Process environment",
       "saved_path": ".env.example",
-      "version_or_commit": "uncommitted",
+      "version_or_commit": "bc0c794",
       "used_during": "2026-10-06 agent loop",
       "status": "used",
       "redactions": [

@@ -219,7 +219,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Local investigation reports
+# New runtime investigation reports. Four historical reports already
+# tracked under investigations/ stay in Git for replay.
 investigations/
 
 # Manual live evaluation output
